@@ -59,13 +59,13 @@ const CapturePage = () => {
     try {
       setError(null);
       
-      // 백엔드 API 호출
-      // 개발 환경이나 백엔드가 준비되지 않은 경우 목업 API 사용
-      const isProd = import.meta.env.MODE === 'production';
+      // GitHub Pages 배포 환경에서는 백엔드 API가 없으므로 항상 목업 API 사용
+      // const isProd = import.meta.env.MODE === 'production';
+      // const result = isProd
+      //   ? await colorAnalysisService.analyzeImage(imageToAnalyze, { maxRetries: 2 })
+      //   : await colorAnalysisService.analyzeImageMock(imageToAnalyze);
       
-      const result = isProd
-        ? await colorAnalysisService.analyzeImage(imageToAnalyze, { maxRetries: 2 })
-        : await colorAnalysisService.analyzeImageMock(imageToAnalyze);
+      const result = await colorAnalysisService.analyzeImageMock(imageToAnalyze);
       
       if (result.success) {
         // 결과 저장 및 결과 페이지로 이동

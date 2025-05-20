@@ -100,11 +100,13 @@ const ResultPage = () => {
         setResultData(parsedResult);
         setResultImage(savedImage);
         
-        // 컬러 타입 정보 가져오기 (실제 API 또는 Mock API 사용)
-        const isProd = import.meta.env.MODE === 'production';
-        const colorTypesData = isProd 
-          ? await colorAnalysisService.getColorTypes({ useCache: true })
-          : await colorAnalysisService.getColorTypesMock({ useCache: true });
+        // 컬러 타입 정보 가져오기 (GitHub Pages 배포 환경에서는 항상 Mock API 사용)
+        // const isProd = import.meta.env.MODE === 'production';
+        // const colorTypesData = isProd 
+        //   ? await colorAnalysisService.getColorTypes({ useCache: true })
+        //   : await colorAnalysisService.getColorTypesMock({ useCache: true });
+        
+        const colorTypesData = await colorAnalysisService.getColorTypesMock({ useCache: true });
         
         if (colorTypesData.success && colorTypesData.data.types) {
           setColorTypeInfo(colorTypesData.data.types);
