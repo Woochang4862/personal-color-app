@@ -10,14 +10,14 @@ const Layout = () => {
     <div className="min-h-screen flex flex-col bg-secondary">
       <header className="border-b border-white/10 py-4 px-4 sm:px-6 lg:px-8 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a href="/#/" className="flex items-center hover:opacity-90 transition-opacity">
+          <a href="/personal-color-app/#/" className="flex items-center hover:opacity-90 transition-opacity">
             <h1 className="text-3xl font-bold tracking-wider" style={{ color: '#E67E22' }}>MARS</h1>
           </a>
           <nav className="hidden md:block">
             <ul className="flex space-x-8">
-              <li><a href="/#/" className="text-white hover:text-primary transition-colors">홈</a></li>
-              <li><a href="/#/capture" className="text-white hover:text-primary transition-colors">진단하기</a></li>
-              <li><a href="/#about" className="text-white hover:text-primary transition-colors">소개</a></li>
+              <li><a href="/personal-color-app/#/" className="text-white hover:text-primary transition-colors">홈</a></li>
+              <li><a href="/personal-color-app/#/capture" className="text-white hover:text-primary transition-colors">진단하기</a></li>
+              <li><a href="/personal-color-app/#/about" className="text-white hover:text-primary transition-colors">소개</a></li>
             </ul>
           </nav>
         </div>
