@@ -1,0 +1,102 @@
+# Task ID: 5
+# Title: Implement Image Upload Functionality
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create functionality for users to upload existing images from their device as an alternative to webcam capture.
+# Details:
+1. Create a file input component for image uploads
+2. Implement drag-and-drop functionality for better UX
+3. Add file validation (type, size, dimensions)
+4. Show preview of uploaded image
+5. Provide option to remove and select a different image
+
+Example implementation:
+```jsx
+import { useState, useRef } from 'react';
+
+function ImageUpload({ onImageUpload }) {
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    validateAndProcessFile(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    validateAndProcessFile(file);
+  };
+
+  const validateAndProcessFile = (file) => {
+    setError(null);
+    
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      setError('Please upload an image file (JPEG, PNG, etc.)');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreview(reader.result);
+      setImage(file);
+      onImageUpload(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="upload-container">
+      {preview ? (
+        <div className="preview-container">
+          <img src={preview} alt="Preview" className="image-preview" />
+          <button onClick={removeImage}>Remove</button>
+        </div>
+      ) : (
+        <div 
+          className="dropzone"
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            ref={fileInputRef}
+          />
+          <p>Drag and drop an image or click to select</p>
+        </div>
+      )}
+      {error && <p className="error-message">{error}</p>}
+    </div>
+  );
+}
+```
+
+# Test Strategy:
+1. Test uploading different image formats (JPEG, PNG, etc.)
+2. Verify file size validation works correctly
+3. Test drag-and-drop functionality
+4. Verify that the preview displays correctly
+5. Test the remove functionality
+6. Verify that the uploaded image is in the correct format for API submission

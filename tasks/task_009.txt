@@ -1,0 +1,142 @@
+# Task ID: 9
+# Title: Implement Results Page with Color Visualization
+# Status: pending
+# Dependencies: 7
+# Priority: high
+# Description: Create the results page that displays the user's personal color type and visualizes recommended color palettes.
+# Details:
+1. Design and implement the results page layout
+2. Display the determined color type (Spring Warm, Summer Cool, etc.)
+3. Visualize recommended color palette
+4. Show colors to avoid
+5. Display characteristics of the color type
+6. Add option to retake or try with a different photo
+
+Example implementation:
+```jsx
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import colorAnalysisService from '../services/colorAnalysisService';
+import LoadingAnimation from '../components/LoadingAnimation';
+
+function ResultPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const analyzeImage = async () => {
+      if (!location.state?.image) {
+        navigate('/capture');
+        return;
+      }
+      
+      try {
+        const analysisResult = await colorAnalysisService.analyzeImage(location.state.image);
+        setResult(analysisResult);
+      } catch (err) {
+        setError(err.message || 'An error occurred during analysis');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    analyzeImage();
+  }, [location.state, navigate]);
+  
+  const handleRetake = () => {
+    navigate('/capture');
+  };
+  
+  if (loading) {
+    return <LoadingAnimation />;
+  }
+  
+  if (error) {
+    return (
+      <div className="error-container text-center py-12">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Analysis Error</h2>
+        <p className="mb-6">{error}</p>
+        <button 
+          onClick={handleRetake}
+          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="result-container container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">Your Personal Color Analysis</h1>
+      
+      <div className="result-card bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold mb-2">{result.colorType}</h2>
+          <p className="text-gray-600">Confidence: {Math.round(result.confidence * 100)}%</p>
+        </div>
+        
+        <div className="characteristics mb-6">
+          <h3 className="text-xl font-semibold mb-3">Your Color Characteristics</h3>
+          <ul className="list-disc pl-5">
+            {result.characteristics.map((char, index) => (
+              <li key={index} className="mb-1">{char}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <div className="color-palettes grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 className="text-xl font-semibold mb-3">Recommended Colors</h3>
+            <div className="color-grid grid grid-cols-4 gap-2">
+              {result.recommendedColors.map((color, index) => (
+                <div 
+                  key={index} 
+                  className="color-swatch h-12 rounded-md" 
+                  style={{ backgroundColor: color }}
+                  title={color}
+                ></div>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-xl font-semibold mb-3">Colors to Avoid</h3>
+            <div className="color-grid grid grid-cols-4 gap-2">
+              {result.avoidColors.map((color, index) => (
+                <div 
+                  key={index} 
+                  className="color-swatch h-12 rounded-md" 
+                  style={{ backgroundColor: color }}
+                  title={color}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="actions flex justify-center space-x-4">
+        <button 
+          onClick={handleRetake}
+          className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition"
+        >
+          Try Another Photo
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+# Test Strategy:
+1. Test with mock result data for each color type
+2. Verify that color swatches display correctly
+3. Test error handling and display
+4. Verify that the retry functionality works
+5. Test navigation flow from capture to results
+6. Verify that the page is responsive on different screen sizes
+7. Test with different result confidence levels

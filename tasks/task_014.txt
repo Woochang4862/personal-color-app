@@ -1,0 +1,167 @@
+# Task ID: 14
+# Title: Implement Responsive Design and Mobile Optimization
+# Status: pending
+# Dependencies: 3, 6, 9
+# Priority: medium
+# Description: Ensure the application is fully responsive and optimized for mobile devices, providing a seamless experience across all screen sizes.
+# Details:
+1. Implement responsive design using Tailwind CSS breakpoints
+2. Optimize UI components for touch interactions
+3. Test and adjust layout for various screen sizes
+4. Implement mobile-specific optimizations for webcam usage
+5. Ensure text readability on small screens
+
+Example implementation:
+```jsx
+// Example of responsive layout component
+function ResponsiveContainer({ children }) {
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl">
+      {children}
+    </div>
+  );
+}
+
+// Example of responsive navigation
+function Navigation() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  return (
+    <nav className="bg-white shadow">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <a href="/" className="flex-shrink-0 flex items-center">
+              <img className="h-8 w-auto" src="/logo.svg" alt="Logo" />
+              <span className="ml-2 text-xl font-bold text-indigo-600">Personal Color</span>
+            </a>
+          </div>
+          
+          {/* Desktop navigation */}
+          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            <div className="flex space-x-4">
+              <a href="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600">
+                Home
+              </a>
+              <a href="/capture" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600">
+                Analyze
+              </a>
+              <button 
+                onClick={() => setHistoryModalOpen(true)}
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+              >
+                History
+              </button>
+            </div>
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="-mr-2 flex items-center sm:hidden">
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            >
+              <span className="sr-only">Open main menu</span>
+              {mobileMenuOpen ? (
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden">
+          <div className="pt-2 pb-3 space-y-1">
+            <a href="/" className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50">
+              Home
+            </a>
+            <a href="/capture" className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50">
+              Analyze
+            </a>
+            <button 
+              onClick={() => {
+                setHistoryModalOpen(true);
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50"
+            >
+              History
+            </button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// Responsive utility classes for common patterns
+const responsiveUtils = {
+  container: "container mx-auto px-4 sm:px-6 lg:px-8",
+  card: "bg-white rounded-lg shadow-md p-4 sm:p-6",
+  heading: "text-2xl sm:text-3xl md:text-4xl font-bold",
+  button: "w-full sm:w-auto px-4 py-2 rounded-lg",
+  grid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6",
+};
+
+// Media query hook for advanced responsive logic
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+
+  return matches;
+}
+```
+
+CSS optimizations for mobile:
+```css
+/* Add to your global CSS */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px]; /* Minimum touch target size */
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Prevent zoom on input focus on iOS */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+```
+
+# Test Strategy:
+1. Test the application on various devices (phones, tablets, desktops)
+2. Verify that all UI elements are accessible and usable on small screens
+3. Test touch interactions on mobile devices
+4. Verify that text is readable on all screen sizes
+5. Test webcam functionality on mobile devices
+6. Verify that forms and inputs work correctly on mobile
+7. Test with different orientations (portrait/landscape)
+8. Verify that the application works with different pixel densities

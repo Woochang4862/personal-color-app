@@ -1,0 +1,87 @@
+# Task ID: 10
+# Title: Implement Social Media Sharing Functionality
+# Status: pending
+# Dependencies: 9
+# Priority: low
+# Description: Add functionality to allow users to share their personal color analysis results on social media platforms.
+# Details:
+1. Research and select appropriate social media sharing libraries
+2. Implement share buttons for major platforms (Facebook, Twitter, Instagram, etc.)
+3. Create shareable content format with results summary
+4. Generate shareable image with results
+5. Implement URL sharing with query parameters
+
+Example implementation:
+```jsx
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
+import { FacebookIcon, TwitterIcon, WhatsappIcon } from 'react-share';
+import html2canvas from 'html2canvas';
+
+function SocialShare({ result, imageRef }) {
+  const shareUrl = window.location.href;
+  const title = `I'm a ${result.colorType} type! Check out my personal color analysis.`;
+  
+  const handleDownload = async () => {
+    if (!imageRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(imageRef.current);
+      const image = canvas.toDataURL('image/png');
+      
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `my-personal-color-${result.colorType.toLowerCase().replace(' ', '-')}.png`;
+      link.click();
+    } catch (error) {
+      console.error('Error generating image:', error);
+    }
+  };
+  
+  return (
+    <div className="social-share mt-8">
+      <h3 className="text-xl font-semibold mb-4 text-center">Share Your Results</h3>
+      
+      <div className="flex justify-center space-x-4 mb-4">
+        <FacebookShareButton url={shareUrl} quote={title}>
+          <FacebookIcon size={40} round />
+        </FacebookShareButton>
+        
+        <TwitterShareButton url={shareUrl} title={title}>
+          <TwitterIcon size={40} round />
+        </TwitterShareButton>
+        
+        <WhatsappShareButton url={shareUrl} title={title}>
+          <WhatsappIcon size={40} round />
+        </WhatsappShareButton>
+      </div>
+      
+      <div className="text-center">
+        <button 
+          onClick={handleDownload}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center mx-auto"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download Result
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default SocialShare;
+```
+
+Install required packages:
+```
+npm install react-share html2canvas
+```
+
+# Test Strategy:
+1. Test sharing functionality on each supported platform
+2. Verify that the correct content is shared
+3. Test the image download functionality
+4. Verify that the generated image contains all relevant information
+5. Test on different browsers and devices
+6. Verify that sharing works with different result types

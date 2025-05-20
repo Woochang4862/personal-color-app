@@ -1,0 +1,108 @@
+# Task ID: 6
+# Title: Create Capture Page with Image Guidelines
+# Status: pending
+# Dependencies: 4, 5
+# Priority: high
+# Description: Develop the capture page that combines webcam capture and image upload functionality with clear guidelines for optimal results.
+# Details:
+1. Create a tabbed interface to switch between webcam and upload options
+2. Implement clear guidelines for optimal photo conditions:
+   - Good lighting (natural light preferred)
+   - Neutral background
+   - Face clearly visible
+   - No heavy makeup
+   - No filters
+3. Add visual aids for proper positioning
+4. Implement a confirmation step before analysis
+5. Add a loading state for image processing
+
+Example implementation:
+```jsx
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import WebcamCapture from '../components/WebcamCapture';
+import ImageUpload from '../components/ImageUpload';
+
+function CapturePage() {
+  const [captureMethod, setCaptureMethod] = useState('webcam');
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleImageCapture = (imageSrc) => {
+    setCapturedImage(imageSrc);
+  };
+
+  const handleAnalysis = async () => {
+    if (!capturedImage) return;
+    
+    setIsLoading(true);
+    try {
+      // Here we would send the image to the backend API
+      // For now, we'll just simulate a delay and redirect
+      setTimeout(() => {
+        navigate('/result', { state: { image: capturedImage } });
+      }, 2000);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Capture Your Photo</h1>
+      
+      <div className="guidelines mb-6 p-4 bg-blue-50 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2">For best results:</h2>
+        <ul className="list-disc pl-5">
+          <li>Use natural lighting</li>
+          <li>Choose a neutral background</li>
+          <li>Position your face clearly in the frame</li>
+          <li>Avoid heavy makeup and filters</li>
+        </ul>
+      </div>
+      
+      <div className="tabs mb-4">
+        <button 
+          className={`mr-2 px-4 py-2 rounded-t-lg ${captureMethod === 'webcam' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setCaptureMethod('webcam')}
+        >
+          Use Webcam
+        </button>
+        <button 
+          className={`px-4 py-2 rounded-t-lg ${captureMethod === 'upload' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setCaptureMethod('upload')}
+        >
+          Upload Image
+        </button>
+      </div>
+      
+      <div className="capture-container mb-6">
+        {captureMethod === 'webcam' ? (
+          <WebcamCapture onImageCapture={handleImageCapture} />
+        ) : (
+          <ImageUpload onImageUpload={handleImageCapture} />
+        )}
+      </div>
+      
+      <button 
+        onClick={handleAnalysis}
+        disabled={!capturedImage || isLoading}
+        className={`w-full py-3 rounded-lg ${!capturedImage || isLoading ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'} text-white transition`}
+      >
+        {isLoading ? 'Analyzing...' : 'Analyze My Color'}
+      </button>
+    </div>
+  );
+}
+```
+
+# Test Strategy:
+1. Test switching between webcam and upload tabs
+2. Verify that guidelines are clearly displayed
+3. Test the image capture flow from both webcam and upload
+4. Verify that the loading state works correctly
+5. Test the navigation to the results page
+6. Verify that the captured image is passed correctly to the results page
+7. Test on different devices and screen sizes

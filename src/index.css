@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 기본 스타일 */
+:root {
+  font-family: 'Pretendard', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light dark;
+}
+
+@layer base {
+  body {
+    @apply bg-secondary text-neutral-50;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-white font-medium;
+  }
+  
+  a {
+    @apply text-primary hover:text-primary-light transition-colors;
+  }
+
+  button {
+    @apply focus:ring-2 focus:ring-primary focus:outline-none;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-md font-medium transition-all duration-200 inline-flex items-center justify-center;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-light shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-neutral-800 text-white hover:bg-neutral-700;
+  }
+  
+  .btn-outline {
+    @apply btn border-2 border-primary text-primary hover:bg-primary hover:text-white;
+  }
+  
+  .card {
+    @apply bg-neutral-800/80 backdrop-blur-sm rounded-xl shadow-lg p-6;
+  }
+  
+  /* 그라데이션 배경 */
+  .gradient-bg {
+    @apply relative;
+    background: linear-gradient(135deg, #FF6B00, #FF3356, #8A2BE2, #4169E1);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+  }
+  
+  .gradient-overlay {
+    @apply absolute inset-0 opacity-90 z-0;
+    background: linear-gradient(135deg, #FF6B00, #FF3356, #8A2BE2, #4169E1);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+  }
+  
+  /* 텍스트 그라데이션 효과 - 개선된 효과 */
+  .text-gradient {
+    @apply text-transparent bg-clip-text font-bold;
+    background-image: linear-gradient(135deg, #FF6B00, #FF3356, #8A2BE2, #4169E1);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+    transition: all 0.3s ease;
+    filter: brightness(1.05) contrast(1.1);
+    text-shadow: 0 0 10px rgba(255, 107, 0, 0.2);
+  }
+  
+  /* 호버 시 그라데이션 효과 - 개선된 효과 */
+  .hover-text-gradient:hover {
+    @apply text-transparent bg-clip-text transition-all duration-300;
+    background-image: linear-gradient(135deg, #FF6B00, #FF3356, #8A2BE2, #4169E1);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+    filter: brightness(1.2) contrast(1.2);
+    text-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+  }
+  
+  /* 그라데이션 버튼 - 개선된 효과 */
+  .btn-gradient {
+    @apply btn text-white relative overflow-hidden;
+    background-image: linear-gradient(135deg, #FF6B00, #FF3356, #8A2BE2, #4169E1);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 6px 20px rgba(138, 43, 226, 0.3), 0 0 0 1px rgba(255, 107, 0, 0.1);
+  }
+  
+  .btn-gradient:hover {
+    @apply shadow-xl transform -translate-y-1;
+    filter: brightness(1.1) contrast(1.1);
+    box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4), 0 0 0 1px rgba(255, 107, 0, 0.15);
+  }
+  
+  .btn-gradient:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    z-index: 1;
+    transform: translateY(100%);
+    transition: transform 0.6s;
+  }
+  
+  .btn-gradient:hover:before {
+    transform: translateY(0);
+  }
+  
+  .modern-text {
+    @apply font-bold tracking-wide;
+  }
+  
+  .content-container {
+    @apply relative z-10;
+  }
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 새로운 애니메이션 및 효과 */
+@keyframes pulse-gradient {
+  0% {
+    filter: brightness(1) contrast(1);
+  }
+  50% {
+    filter: brightness(1.1) contrast(1.2);
+  }
+  100% {
+    filter: brightness(1) contrast(1);
+  }
+}
+
+.text-pulse {
+  animation: pulse-gradient 3s ease-in-out infinite;
+}
+
+/* 기존 스타일 중 일부는 제거하거나 Tailwind와 충돌하지 않도록 변경 */

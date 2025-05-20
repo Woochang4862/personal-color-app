@@ -1,0 +1,207 @@
+# Task ID: 4
+# Title: Implement Webcam Capture Functionality
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Implement the functionality to access the user's webcam and capture photos for color analysis.
+# Details:
+1. Install React Webcam: `npm install react-webcam`
+2. Create a webcam component that handles camera access and photo capture
+3. Implement error handling for camera access denial
+4. Add UI controls for capturing photos
+5. Provide visual guidelines for optimal photo positioning
+6. Implement preview of captured image
+7. Add option to retake photo
+
+Example implementation:
+```jsx
+import React, { useState, useRef, useCallback } from 'react';
+import Webcam from 'react-webcam';
+
+function WebcamCapture({ onImageCapture }) {
+  const webcamRef = useRef(null);
+  const [imgSrc, setImgSrc] = useState(null);
+  const [error, setError] = useState(null);
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImgSrc(imageSrc);
+    onImageCapture(imageSrc);
+  }, [webcamRef, onImageCapture]);
+
+  const retake = () => {
+    setImgSrc(null);
+  };
+
+  const handleUserMediaError = useCallback((error) => {
+    setError('Camera access denied or not available. Please try uploading an image instead.');
+  }, []);
+
+  return (
+    <div className="webcam-container">
+      {error ? (
+        <div className="error-message">{error}</div>
+      ) : imgSrc ? (
+        <div>
+          <img src={imgSrc} alt="Captured" />
+          <button onClick={retake}>Retake Photo</button>
+        </div>
+      ) : (
+        <>
+          <div className="webcam-overlay">
+            <div className="face-guide"></div>
+          </div>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            videoConstraints={{ facingMode: 'user' }}
+            onUserMediaError={handleUserMediaError}
+          />
+          <button onClick={capture}>Capture Photo</button>
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+# Test Strategy:
+1. Test webcam access on different browsers
+2. Verify that captured images are displayed correctly
+3. Test error handling when camera access is denied
+4. Verify that the retake functionality works
+5. Test on both mobile and desktop devices
+6. Verify that the captured image is in the correct format for API submission
+
+# Subtasks:
+## 1. Set up webcam access [done]
+### Dependencies: None
+### Description: Implement the necessary code to request and obtain access to the user's webcam
+### Details:
+Use the navigator.mediaDevices.getUserMedia() API to request webcam access. Handle user permissions and potential browser compatibility issues.
+<info added on 2025-05-20T05:10:16.093Z>
+WebcamCapture 컴포넌트를 react-webcam 라이브러리를 사용하여 구현했습니다. 구현된 기능은 다음과 같습니다:
+
+1. 웹캠 접근 및 실시간 미리보기 표시
+2. 얼굴 위치를 잡을 수 있는 원형 가이드 오버레이
+3. 사진 촬영 버튼
+4. 촬영 후 미리보기 및 재촬영 옵션
+5. 권한 오류 등의 예외 상황 처리
+
+이 컴포넌트는 CapturePage 내에서 사용되며, 사진 촬영 모드와 이미지 업로드 모드를 탭으로 구분하여 구현했습니다. navigator.mediaDevices.getUserMedia() API를 직접 사용하는 대신 react-webcam 라이브러리를 활용하여 웹캠 접근 및 권한 관리를 처리했습니다.
+</info added on 2025-05-20T05:10:16.093Z>
+
+## 2. Create video stream display [done]
+### Dependencies: 4.1
+### Description: Implement a video element to display the webcam stream in real-time
+### Details:
+Create a <video> element in the HTML and use JavaScript to set its srcObject to the obtained MediaStream from the webcam.
+<info added on 2025-05-20T05:10:35.327Z>
+This task has been implemented in the WebcamCapture component using the react-webcam library's <Webcam> component to display the video stream.
+
+Key implementation features:
+1. Connected webcamRef reference to the <Webcam> component for direct control
+2. Set width, height, and facingMode="user" properties for the webcam video
+3. Applied Tailwind CSS classes for styling
+4. Connected onUserMediaError callback for error handling
+5. Set screenshotFormat to "image/jpeg" for captured images
+
+Conditional rendering was implemented to display the video stream only when the isCameraActive state is true.
+</info added on 2025-05-20T05:10:35.327Z>
+
+## 3. Implement photo capture functionality [done]
+### Dependencies: 4.2
+### Description: Create a mechanism to capture still images from the video stream
+### Details:
+Use a <canvas> element to capture frames from the video stream. Implement a function to draw the current video frame onto the canvas when triggered.
+<info added on 2025-05-20T05:10:55.551Z>
+This task was implemented in the WebcamCapture component using the getScreenshot() method from the react-webcam library to capture images from the video stream.
+
+Key implementation features:
+1. Optimized capture function using useCallback
+2. Called webcamRef.current.getScreenshot() to create a snapshot of the current screen
+3. Stored captured images in state (imgSrc) for UI display
+4. Implemented onImageCapture callback to pass captured images to parent components
+5. Modified isCameraActive state after capture to stop the camera
+
+Additionally, a retake feature was implemented allowing users to recapture images if they're not satisfied with the initial result.
+</info added on 2025-05-20T05:10:55.551Z>
+
+## 4. Develop error handling [done]
+### Dependencies: 4.1, 4.2, 4.3
+### Description: Implement comprehensive error handling for various scenarios
+### Details:
+Handle errors such as denied permissions, unavailable webcam, unsupported browser, and connection issues. Provide user-friendly error messages and potential solutions.
+<info added on 2025-05-20T05:11:13.665Z>
+Error handling functionality has been implemented in the WebcamCapture component using react-webcam's onUserMediaError callback and state management to handle various error scenarios.
+
+Key implementations:
+1. Added error state variable to manage error conditions
+2. Implemented onUserMediaError callback function (using useCallback)
+3. Display user-friendly error messages for camera permission denial, unsupported camera, etc.
+4. Provide alternative UI when errors occur (guiding users to image upload functionality)
+5. Record debugging logs through console.error
+
+Additionally, the CapturePage component includes code to handle errors that may occur during image analysis. The UI is designed to allow users to switch to image upload method when webcam access is unavailable.
+</info added on 2025-05-20T05:11:13.665Z>
+
+## 5. Create UI controls [done]
+### Dependencies: 4.2, 4.3
+### Description: Design and implement user interface controls for webcam functionality
+### Details:
+Create buttons for starting/stopping the webcam, capturing photos, and accessing captured images. Ensure the UI is intuitive and responsive.
+<info added on 2025-05-20T05:11:36.666Z>
+UI controls were implemented in both WebcamCapture and CapturePage components. Tailwind CSS was used to create an intuitive and responsive UI.
+
+WebcamCapture component UI controls:
+1. Photo capture button - Captures image when clicked while webcam is active
+2. Retake photo button - Appears when an image is captured, reactivates camera when clicked
+3. Face position guide - Circular overlay helping users position their face correctly
+4. Error message UI - Displays user-friendly messages when errors occur
+
+CapturePage component UI controls:
+1. Tab UI - Buttons to switch between webcam capture mode and image upload mode
+2. Guidance messages - User instructions based on the current mode
+3. File upload UI - File selection button with drag and drop guidance
+4. Analysis button - Activates after image capture or upload is complete
+5. Loading indicator - Animation effect showing analysis in progress
+
+All buttons include hover effects to visually indicate interactivity, with state-dependent activation/deactivation and color changes implemented.
+</info added on 2025-05-20T05:11:36.666Z>
+
+## 6. Optimize performance and compatibility [done]
+### Dependencies: 4.1, 4.2, 4.3, 4.4, 4.5
+### Description: Ensure the webcam functionality works smoothly across different devices and browsers
+### Details:
+Test on various browsers and devices. Implement fallbacks for older browsers. Optimize video processing for better performance on low-end devices.
+<info added on 2025-05-20T05:12:09.123Z>
+Performance and compatibility optimization tasks completed:
+
+1. Webcam usage optimization:
+   - Memoized event handlers and callback functions using useCallback
+   - Added webcam activation state (isCameraActive) to release webcam resources when not needed
+   - Configured video constraints for appropriate resolution
+
+2. Enhanced error handling:
+   - Implemented error handling for various browsers and devices
+   - Provided alternative options (image upload) for devices without webcam support
+
+3. Performance optimization:
+   - Used conditional rendering to mount only necessary components
+   - Managed state to prevent unnecessary re-renders
+   - Optimized image size and quality (screenshotFormat configuration)
+
+4. Mobile compatibility:
+   - Implemented responsive design using Tailwind CSS
+   - Used facingMode="user" setting for front camera on mobile devices
+   - Adjusted UI size and spacing for touch events
+
+5. Accessibility improvements:
+   - Used appropriate alt text and semantic markup
+   - Ensured keyboard accessibility
+   - Maintained color contrast and readability
+
+The react-webcam library provides basic compatibility across various browsers and devices, while Tailwind CSS enables responsive design for different screen sizes.
+</info added on 2025-05-20T05:12:09.123Z>
+
