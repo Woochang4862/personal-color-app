@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://jeong-uchang.github.io/personal-color-app",
+  "homepage": "https://woochang4862.github.io/personal-color-app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
