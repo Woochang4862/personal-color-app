@@ -1,142 +1,222 @@
 # Task ID: 9
-# Title: Implement Results Page with Color Visualization
+# Title: Implement Social Sharing and Result Download Features
 # Status: pending
 # Dependencies: 7
-# Priority: high
-# Description: Create the results page that displays the user's personal color type and visualizes recommended color palettes.
+# Priority: low
+# Description: Add functionality to share analysis results on social media platforms and download results as images.
 # Details:
-1. Design and implement the results page layout
-2. Display the determined color type (Spring Warm, Summer Cool, etc.)
-3. Visualize recommended color palette
-4. Show colors to avoid
-5. Display characteristics of the color type
-6. Add option to retake or try with a different photo
+1. Install required packages:
+   ```bash
+   npm install html-to-image file-saver react-share
+   ```
 
-Example implementation:
-```jsx
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import colorAnalysisService from '../services/colorAnalysisService';
-import LoadingAnimation from '../components/LoadingAnimation';
+2. Create a utility for generating shareable images in `/src/utils/imageExport.js`:
+   ```javascript
+   import { toPng } from 'html-to-image';
+   import { saveAs } from 'file-saver';
+   
+   // Generate a PNG from a DOM element
+   export const generateImage = async (element, options = {}) => {
+     if (!element) {
+       throw new Error('No element provided for image generation');
+     }
+     
+     try {
+       const dataUrl = await toPng(element, {
+         quality: 0.95,
+         backgroundColor: '#ffffff',
+         ...options
+       });
+       
+       return dataUrl;
+     } catch (error) {
+       console.error('Error generating image:', error);
+       throw new Error('Failed to generate image from results');
+     }
+   };
+   
+   // Download the generated image
+   export const downloadImage = async (element, filename = 'color-analysis-result.png') => {
+     try {
+       const dataUrl = await generateImage(element);
+       const blob = dataURLToBlob(dataUrl);
+       saveAs(blob, filename);
+       return true;
+     } catch (error) {
+       console.error('Error downloading image:', error);
+       throw new Error('Failed to download results image');
+     }
+   };
+   
+   // Helper function to convert data URL to Blob
+   const dataURLToBlob = (dataURL) => {
+     const parts = dataURL.split(';base64,');
+     const contentType = parts[0].split(':')[1];
+     const raw = window.atob(parts[1]);
+     const rawLength = raw.length;
+     const uInt8Array = new Uint8Array(rawLength);
+     
+     for (let i = 0; i < rawLength; ++i) {
+       uInt8Array[i] = raw.charCodeAt(i);
+     }
+     
+     return new Blob([uInt8Array], { type: contentType });
+   };
+   ```
 
-function ResultPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  useEffect(() => {
-    const analyzeImage = async () => {
-      if (!location.state?.image) {
-        navigate('/capture');
-        return;
-      }
-      
-      try {
-        const analysisResult = await colorAnalysisService.analyzeImage(location.state.image);
-        setResult(analysisResult);
-      } catch (err) {
-        setError(err.message || 'An error occurred during analysis');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    analyzeImage();
-  }, [location.state, navigate]);
-  
-  const handleRetake = () => {
-    navigate('/capture');
-  };
-  
-  if (loading) {
-    return <LoadingAnimation />;
-  }
-  
-  if (error) {
-    return (
-      <div className="error-container text-center py-12">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Analysis Error</h2>
-        <p className="mb-6">{error}</p>
-        <button 
-          onClick={handleRetake}
-          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="result-container container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Your Personal Color Analysis</h1>
-      
-      <div className="result-card bg-white rounded-lg shadow-lg p-6 mb-8">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">{result.colorType}</h2>
-          <p className="text-gray-600">Confidence: {Math.round(result.confidence * 100)}%</p>
-        </div>
-        
-        <div className="characteristics mb-6">
-          <h3 className="text-xl font-semibold mb-3">Your Color Characteristics</h3>
-          <ul className="list-disc pl-5">
-            {result.characteristics.map((char, index) => (
-              <li key={index} className="mb-1">{char}</li>
-            ))}
-          </ul>
-        </div>
-        
-        <div className="color-palettes grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <h3 className="text-xl font-semibold mb-3">Recommended Colors</h3>
-            <div className="color-grid grid grid-cols-4 gap-2">
-              {result.recommendedColors.map((color, index) => (
-                <div 
-                  key={index} 
-                  className="color-swatch h-12 rounded-md" 
-                  style={{ backgroundColor: color }}
-                  title={color}
-                ></div>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-xl font-semibold mb-3">Colors to Avoid</h3>
-            <div className="color-grid grid grid-cols-4 gap-2">
-              {result.avoidColors.map((color, index) => (
-                <div 
-                  key={index} 
-                  className="color-swatch h-12 rounded-md" 
-                  style={{ backgroundColor: color }}
-                  title={color}
-                ></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="actions flex justify-center space-x-4">
-        <button 
-          onClick={handleRetake}
-          className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition"
-        >
-          Try Another Photo
-        </button>
-      </div>
-    </div>
-  );
-}
-```
+3. Create a SocialShare component in `/src/components/SocialShare.jsx`:
+   ```jsx
+   import React from 'react';
+   import {
+     FacebookShareButton,
+     TwitterShareButton,
+     PinterestShareButton,
+     FacebookIcon,
+     TwitterIcon,
+     PinterestIcon
+   } from 'react-share';
+   
+   const SocialShare = ({ url, title, image, description }) => {
+     const shareUrl = url || window.location.href;
+     const shareTitle = title || 'My Personal Color Analysis Results';
+     const shareDescription = description || 'I just discovered my personal color season! Check out this amazing color analysis tool.';
+     
+     return (
+       <div className="social-share">
+         <h3>Share Your Results</h3>
+         <div className="share-buttons">
+           <FacebookShareButton url={shareUrl} quote={shareTitle} className="share-button">
+             <FacebookIcon size={32} round />
+             <span>Facebook</span>
+           </FacebookShareButton>
+           
+           <TwitterShareButton url={shareUrl} title={shareTitle} className="share-button">
+             <TwitterIcon size={32} round />
+             <span>Twitter</span>
+           </TwitterShareButton>
+           
+           <PinterestShareButton 
+             url={shareUrl} 
+             media={image} 
+             description={shareDescription} 
+             className="share-button"
+           >
+             <PinterestIcon size={32} round />
+             <span>Pinterest</span>
+           </PinterestShareButton>
+         </div>
+       </div>
+     );
+   };
+   
+   export default SocialShare;
+   ```
+
+4. Update the ResultsPage component to include download and sharing functionality:
+   ```jsx
+   import React, { useEffect, useRef, useState } from 'react';
+   import { useNavigate } from 'react-router-dom';
+   import { useColorAnalyzer } from '../hooks/useColorAnalyzer';
+   import ColorTypeInfo from '../components/ColorTypeInfo';
+   import ColorPalette from '../components/ColorPalette';
+   import SocialShare from '../components/SocialShare';
+   import { downloadImage, generateImage } from '../utils/imageExport';
+   import ErrorMessage from '../components/ErrorMessage';
+   
+   const ResultsPage = () => {
+     const navigate = useNavigate();
+     const { result, image, resetAnalysis } = useColorAnalyzer();
+     const resultsRef = useRef(null);
+     const [shareImage, setShareImage] = useState(null);
+     const [exportError, setExportError] = useState(null);
+     
+     useEffect(() => {
+       // Redirect to analysis page if no results are available
+       if (!result) {
+         navigate('/analyze');
+         return;
+       }
+       
+       // Generate share image when results are available
+       const generateShareImage = async () => {
+         try {
+           if (resultsRef.current) {
+             const imageUrl = await generateImage(resultsRef.current);
+             setShareImage(imageUrl);
+           }
+         } catch (error) {
+           console.error('Failed to generate share image:', error);
+           // Don't show error to user, just log it
+         }
+       };
+       
+       // Generate image after a short delay to ensure rendering is complete
+       const timer = setTimeout(generateShareImage, 1000);
+       return () => clearTimeout(timer);
+     }, [result, navigate]);
+     
+     if (!result) {
+       return null; // Will redirect via useEffect
+     }
+     
+     const handleStartOver = () => {
+       resetAnalysis();
+       navigate('/analyze');
+     };
+     
+     const handleDownloadResults = async () => {
+       try {
+         setExportError(null);
+         await downloadImage(resultsRef.current, `${result.colorType.replace(' ', '-')}-color-analysis.png`);
+       } catch (error) {
+         setExportError(error.message);
+       }
+     };
+     
+     return (
+       <div className="results-page">
+         <div className="results-container" ref={resultsRef}>
+           <header className="results-header">
+             <h1>Your Personal Color Analysis</h1>
+           </header>
+           
+           <div className="results-content">
+             {/* ... existing results content ... */}
+           </div>
+         </div>
+         
+         <div className="action-buttons">
+           <button onClick={handleStartOver} className="start-over-button">
+             Analyze Another Photo
+           </button>
+           
+           <button onClick={handleDownloadResults} className="download-button">
+             Download Results
+           </button>
+         </div>
+         
+         {exportError && (
+           <ErrorMessage error={exportError} />
+         )}
+         
+         <SocialShare 
+           title={`I'm a ${result.colorType} color season!`}
+           description={`I just discovered my personal color season is ${result.colorType}. Find out yours!`}
+           image={shareImage}
+         />
+       </div>
+     );
+   };
+   
+   export default ResultsPage;
+   ```
 
 # Test Strategy:
-1. Test with mock result data for each color type
-2. Verify that color swatches display correctly
-3. Test error handling and display
-4. Verify that the retry functionality works
-5. Test navigation flow from capture to results
-6. Verify that the page is responsive on different screen sizes
-7. Test with different result confidence levels
+1. Test image generation functionality with different DOM elements
+2. Verify download functionality works correctly
+3. Test social sharing with different platforms
+4. Validate error handling during image generation and download
+5. Test sharing with and without generated image
+6. Verify that the correct content is included in the generated image
+7. Test performance impact of image generation
+8. Ensure proper fallbacks when image generation fails

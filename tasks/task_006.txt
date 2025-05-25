@@ -1,108 +1,178 @@
 # Task ID: 6
-# Title: Create Capture Page with Image Guidelines
+# Title: Create Landing Page and User Flow
 # Status: pending
-# Dependencies: 4, 5
-# Priority: high
-# Description: Develop the capture page that combines webcam capture and image upload functionality with clear guidelines for optimal results.
+# Dependencies: 1
+# Priority: medium
+# Description: Develop the landing page with service introduction and implement the core user flow for the application.
 # Details:
-1. Create a tabbed interface to switch between webcam and upload options
-2. Implement clear guidelines for optimal photo conditions:
-   - Good lighting (natural light preferred)
-   - Neutral background
-   - Face clearly visible
-   - No heavy makeup
-   - No filters
-3. Add visual aids for proper positioning
-4. Implement a confirmation step before analysis
-5. Add a loading state for image processing
+1. Create a HomePage component in `/src/pages/HomePage.jsx`:
+   ```jsx
+   import React from 'react';
+   import { Link } from 'react-router-dom';
+   
+   const HomePage = () => {
+     return (
+       <div className="home-container">
+         <header className="home-header">
+           <h1>Personal Color Analysis</h1>
+           <p className="tagline">Discover your perfect color palette in minutes</p>
+         </header>
+         
+         <section className="service-intro">
+           <div className="intro-content">
+             <h2>What is Personal Color Analysis?</h2>
+             <p>
+               Personal color analysis helps you identify which colors complement your natural features best.
+               By analyzing your skin tone, hair color, and eye color, we can determine your seasonal color type
+               and provide you with a personalized color palette that enhances your natural beauty.
+             </p>
+             
+             <div className="color-types">
+               <div className="color-type">
+                 <h3>Spring Warm</h3>
+                 <div className="color-sample spring"></div>
+                 <p>Bright, clear colors with yellow undertones</p>
+               </div>
+               
+               <div className="color-type">
+                 <h3>Summer Cool</h3>
+                 <div className="color-sample summer"></div>
+                 <p>Soft, muted colors with blue undertones</p>
+               </div>
+               
+               <div className="color-type">
+                 <h3>Fall Warm</h3>
+                 <div className="color-sample fall"></div>
+                 <p>Rich, deep colors with yellow undertones</p>
+               </div>
+               
+               <div className="color-type">
+                 <h3>Winter Cool</h3>
+                 <div className="color-sample winter"></div>
+                 <p>Clear, intense colors with blue undertones</p>
+               </div>
+             </div>
+           </div>
+         </section>
+         
+         <section className="how-it-works">
+           <h2>How It Works</h2>
+           <div className="steps">
+             <div className="step">
+               <div className="step-number">1</div>
+               <h3>Take or Upload a Photo</h3>
+               <p>Use your webcam to take a photo or upload an existing one</p>
+             </div>
+             
+             <div className="step">
+               <div className="step-number">2</div>
+               <h3>AI Analysis</h3>
+               <p>Our AI analyzes your features to determine your color season</p>
+             </div>
+             
+             <div className="step">
+               <div className="step-number">3</div>
+               <h3>Get Your Results</h3>
+               <p>Receive your personal color palette and recommendations</p>
+             </div>
+           </div>
+         </section>
+         
+         <div className="cta-container">
+           <Link to="/analyze" className="cta-button">
+             Start Your Color Analysis
+           </Link>
+         </div>
+         
+         <footer className="home-footer">
+           <p>© 2023 Personal Color Analysis. All rights reserved.</p>
+         </footer>
+       </div>
+     );
+   };
+   
+   export default HomePage;
+   ```
 
-Example implementation:
-```jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import WebcamCapture from '../components/WebcamCapture';
-import ImageUpload from '../components/ImageUpload';
-
-function CapturePage() {
-  const [captureMethod, setCaptureMethod] = useState('webcam');
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleImageCapture = (imageSrc) => {
-    setCapturedImage(imageSrc);
-  };
-
-  const handleAnalysis = async () => {
-    if (!capturedImage) return;
-    
-    setIsLoading(true);
-    try {
-      // Here we would send the image to the backend API
-      // For now, we'll just simulate a delay and redirect
-      setTimeout(() => {
-        navigate('/result', { state: { image: capturedImage } });
-      }, 2000);
-    } catch (error) {
-      console.error('Analysis error:', error);
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Capture Your Photo</h1>
-      
-      <div className="guidelines mb-6 p-4 bg-blue-50 rounded-lg">
-        <h2 className="text-xl font-semibold mb-2">For best results:</h2>
-        <ul className="list-disc pl-5">
-          <li>Use natural lighting</li>
-          <li>Choose a neutral background</li>
-          <li>Position your face clearly in the frame</li>
-          <li>Avoid heavy makeup and filters</li>
-        </ul>
-      </div>
-      
-      <div className="tabs mb-4">
-        <button 
-          className={`mr-2 px-4 py-2 rounded-t-lg ${captureMethod === 'webcam' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setCaptureMethod('webcam')}
-        >
-          Use Webcam
-        </button>
-        <button 
-          className={`px-4 py-2 rounded-t-lg ${captureMethod === 'upload' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setCaptureMethod('upload')}
-        >
-          Upload Image
-        </button>
-      </div>
-      
-      <div className="capture-container mb-6">
-        {captureMethod === 'webcam' ? (
-          <WebcamCapture onImageCapture={handleImageCapture} />
-        ) : (
-          <ImageUpload onImageUpload={handleImageCapture} />
-        )}
-      </div>
-      
-      <button 
-        onClick={handleAnalysis}
-        disabled={!capturedImage || isLoading}
-        className={`w-full py-3 rounded-lg ${!capturedImage || isLoading ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'} text-white transition`}
-      >
-        {isLoading ? 'Analyzing...' : 'Analyze My Color'}
-      </button>
-    </div>
-  );
-}
-```
+2. Create an AnalysisPage component in `/src/pages/AnalysisPage.jsx`:
+   ```jsx
+   import React, { useState } from 'react';
+   import { useNavigate } from 'react-router-dom';
+   import ImageInput from '../components/ImageInput';
+   import { useColorAnalyzer } from '../hooks/useColorAnalyzer';
+   
+   const AnalysisPage = () => {
+     const navigate = useNavigate();
+     const { setImage, analyzeColor, isAnalyzing, error } = useColorAnalyzer();
+     const [selectedImage, setSelectedImage] = useState(null);
+     
+     const handleImageSelected = (imageData) => {
+       setSelectedImage(imageData);
+       setImage(imageData);
+     };
+     
+     const handleAnalysis = async () => {
+       if (!selectedImage) {
+         return;
+       }
+       
+       const result = await analyzeColor(selectedImage);
+       if (result) {
+         navigate('/results');
+       }
+     };
+     
+     return (
+       <div className="analysis-container">
+         <header className="analysis-header">
+           <h1>Take or Upload Your Photo</h1>
+           <p>For best results, use a well-lit photo showing your face clearly</p>
+         </header>
+         
+         <div className="analysis-content">
+           <ImageInput onImageSelected={handleImageSelected} />
+           
+           {selectedImage && (
+             <div className="selected-image-preview">
+               <h3>Selected Image</h3>
+               <img src={selectedImage} alt="Selected" className="preview-image" />
+               
+               <button 
+                 onClick={handleAnalysis} 
+                 disabled={isAnalyzing}
+                 className="analyze-button"
+               >
+                 {isAnalyzing ? 'Analyzing...' : 'Analyze My Colors'}
+               </button>
+             </div>
+           )}
+           
+           {isAnalyzing && (
+             <div className="loading-indicator">
+               <div className="spinner"></div>
+               <p>Analyzing your colors... This may take a moment</p>
+             </div>
+           )}
+           
+           {error && (
+             <div className="error-message">
+               <p>Error: {error}</p>
+               <p>Please try again or use a different photo.</p>
+             </div>
+           )}
+         </div>
+       </div>
+     );
+   };
+   
+   export default AnalysisPage;
+   ```
 
 # Test Strategy:
-1. Test switching between webcam and upload tabs
-2. Verify that guidelines are clearly displayed
-3. Test the image capture flow from both webcam and upload
-4. Verify that the loading state works correctly
-5. Test the navigation to the results page
-6. Verify that the captured image is passed correctly to the results page
-7. Test on different devices and screen sizes
+1. Test navigation between pages
+2. Verify that all UI elements render correctly
+3. Test responsive design on different screen sizes
+4. Ensure proper loading states are displayed during analysis
+5. Validate error handling and error message display
+6. Test image preview functionality
+7. Verify that the CTA buttons work correctly

@@ -100,12 +100,12 @@ const ResultPage = () => {
         setResultData(parsedResult);
         setResultImage(savedImage);
         
-        // 컬러 타입 정보 가져오기 (GitHub Pages 배포 환경에서는 항상 Mock API 사용)
-        // const isProd = import.meta.env.MODE === 'production';
-        // const colorTypesData = isProd 
-        //   ? await colorAnalysisService.getColorTypes({ useCache: true })
-        //   : await colorAnalysisService.getColorTypesMock({ useCache: true });
+        // API 응답 데이터가 있으면 콘솔에 출력 (디버깅용)
+        if (parsedResult.apiResponse) {
+          console.log('API 응답 원본 데이터:', parsedResult.apiResponse);
+        }
         
+        // 컬러 타입 정보 가져오기 (Mock API 사용)
         const colorTypesData = await colorAnalysisService.getColorTypesMock({ useCache: true });
         
         if (colorTypesData.success && colorTypesData.data.types) {
@@ -252,9 +252,15 @@ const ResultPage = () => {
   }
   
   // 결과 정보 추출
-  const colorType = resultData.colorType;
-  const confidence = resultData.confidence || 95;
-  const colorInfo = colorTypeInfo[colorType];
+  // 대표 톤 이름: colorType(기존) 또는 season(신규)
+  const colorType = resultData.colorType || resultData.season;
+  // 신뢰도: confidence(기존) 또는 probabilities에서 해당 톤의 확률(신규)
+  const confidence = resultData.confidence;
+  const reason = resultData.reason || resultData.apiResponse.reason;
+  const description = resultData.description || resultData.apiResponse.description;
+  const feature = resultData.feature || resultData.apiResponse.feature;
+  const recommend = resultData.recommend || resultData.apiResponse.recommend;
+  const avoid = resultData.avoid || resultData.apiResponse.avoid;
   
   return (
     <div className="text-center pb-10">
@@ -264,74 +270,119 @@ const ResultPage = () => {
           퍼스널 컬러 <span className="text-primary">분석 결과</span>
         </h2>
         
-        {/* 신뢰도 표시 */}
-        <div className="mb-10">
-          <div className="flex justify-center items-center">
-            <span className="text-base text-white/80 mr-3">신뢰도:</span>
-            <div className="w-60 h-5 bg-black/40 backdrop-blur-md rounded-full overflow-hidden border border-white/10">
-              <div 
-                className="h-full bg-primary" 
-                style={{ width: `${confidence}%` }}
-              ></div>
-            </div>
-            <span className="ml-3 text-lg font-semibold text-white">{confidence}%</span>
-          </div>
+        {/* 대표 톤 이름 표시 */}
+        <div className="mb-8">
+          <span className="text-2xl font-bold text-primary">{colorTypeInfo[colorType].title}</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* 촬영된 이미지 */}
-          <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8">
-            <h3 className="text-2xl font-semibold mb-6 text-white">촬영 이미지</h3>
-            {resultImage && (
-              <div className="rounded-lg overflow-hidden border border-white/10">
-                <img 
-                  src={resultImage} 
-                  alt="분석된 이미지" 
-                  className="w-full max-w-xs mx-auto"
-                />
+        {/* 신뢰도/확률 표시 */}
+        {resultData.probabilities ? (
+          <div className="mb-10">
+            <h4 className="text-lg text-white/80 mb-2">톤별 확률</h4>
+            <table className="mx-auto text-white/80 text-base border-separate border-spacing-x-6">
+              <tbody>
+                {Object.entries(resultData.probabilities).map(([tone, prob]) => (
+                  <tr key={tone}>
+                    <td className="font-semibold text-primary text-right pr-2">{tone}</td>
+                    <td className="text-left pl-2">{prob}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="mb-10">
+            <div className="flex justify-center items-center">
+              <span className="text-base text-white/80 mr-3">신뢰도:</span>
+              <div className="w-60 h-5 bg-black/40 backdrop-blur-md rounded-full overflow-hidden border border-white/10">
+                <div 
+                  className="h-full bg-primary" 
+                  style={{ width: `${confidence}` }}
+                ></div>
               </div>
-            )}
-          </div>
-          
-          {/* 분석 결과 */}
-          <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8 text-left">
-            <h3 className="text-3xl font-bold mb-6 text-white text-center">
-              당신은 <span className="text-primary">{colorInfo.title}</span> 입니다
-            </h3>
-            <p className="mb-6 text-white/80 text-lg leading-relaxed">{colorInfo.description}</p>
-            
-            <h4 className="font-semibold text-xl mb-4 text-white">특징:</h4>
-            <ul className="list-disc list-inside mb-6 text-white/80 text-lg">
-              {colorInfo.characteristics.map((char, index) => (
-                <li key={index} className="mb-2">{char}</li>
-              ))}
-            </ul>
-            
-            <h4 className="font-semibold text-xl mb-4 text-white">추천 컬러:</h4>
-            <div className="flex flex-wrap gap-4 mb-6">
-              {colorInfo.recommendedColors.map((color, index) => (
-                <div 
-                  key={index}
-                  className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110"
-                  style={{ backgroundColor: color }}
-                  title={color}
-                ></div>
-              ))}
-            </div>
-            
-            <h4 className="font-semibold text-xl mb-4 text-white">피해야 할 컬러:</h4>
-            <div className="flex flex-wrap gap-4">
-              {colorInfo.avoidColors.map((color, index) => (
-                <div 
-                  key={index}
-                  className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110"
-                  style={{ backgroundColor: color }}
-                  title={color}
-                ></div>
-              ))}
+              <span className="ml-3 text-lg font-semibold text-white">{confidence}</span>
             </div>
           </div>
-        </div>
+        )}
+        
+        {/* 분석 사유 표시 */}
+        {resultData.reason && (
+          <div className="mb-8 p-4 bg-black/30 rounded-lg border border-white/10 max-w-2xl mx-auto">
+            <h4 className="text-lg font-bold text-primary mb-2">분석 사유</h4>
+            <p className="text-white/80 text-base whitespace-pre-line">{resultData.reason}</p>
+          </div>
+        )}
+        
+        {/* 기존 상세 결과(컬러 정보 등) */}
+        {colorTypeInfo[colorType] && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            {/* 촬영된 이미지 */}
+            <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8">
+              <h3 className="text-2xl font-semibold mb-6 text-white">촬영 이미지</h3>
+              {resultImage && (
+                <div className="rounded-lg overflow-hidden border border-white/10">
+                  <img 
+                    src={resultImage} 
+                    alt="분석된 이미지" 
+                    className="w-full max-w-xs mx-auto"
+                  />
+                </div>
+              )}
+            </div>
+            {/* 분석 결과 */}
+            <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8 text-left">
+              <h3 className="text-3xl font-bold mb-6 text-white text-center">
+                당신은 <span className="text-primary">{colorTypeInfo[colorType].title}</span> 입니다
+              </h3>
+              <p className="mb-6 text-white/80 text-lg leading-relaxed">{reason}</p>
+              <p className="mb-6 text-white/80 text-lg leading-relaxed">{description}</p>
+              <h4 className="font-semibold text-xl mb-4 text-white">특징:</h4>
+              <ul className="list-disc list-inside mb-6 text-white/80 text-lg">
+                {feature.map((char, index) => (
+                  <li key={index} className="mb-2">{char}</li>
+                ))}
+              </ul>
+              <h4 className="font-semibold text-xl mb-4 text-white">추천 컬러:</h4>
+              <div className="flex flex-wrap gap-4 mb-6">
+                {recommend.map((color, index) => (
+                  <div 
+                    key={index}
+                    className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110 relative group"
+                    style={{ backgroundColor: color.rgb }}
+                  >
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/80 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {color.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <h4 className="font-semibold text-xl mb-4 text-white">피해야 할 컬러:</h4>
+              <div className="flex flex-wrap gap-4">
+                {avoid.map((color, index) => (
+                  <div 
+                    key={index}
+                    className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110 relative group"
+                    style={{ backgroundColor: color.rgb }}
+                  >
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/80 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {color.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* 폴백 모드 표시 (API 오류 시) */}
+        {resultData.fallbackMode && (
+          <div className="mb-6 p-3 bg-yellow-900/30 border border-yellow-600/30 text-yellow-400 rounded text-sm">
+            <p>
+              <span className="font-bold">참고:</span> API 연결 오류로 인해 로컬 분석 결과를 표시합니다.
+              {resultData.error && <span className="block mt-1 text-xs">{resultData.error}</span>}
+            </p>
+          </div>
+        )}
       </div>
       
       <div className="flex flex-wrap justify-center gap-6 mb-16">

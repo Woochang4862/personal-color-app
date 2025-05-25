@@ -1,48 +1,152 @@
 # Task ID: 3
-# Title: Implement Landing Page
+# Title: Develop OpenAI API Integration Service
 # Status: pending
 # Dependencies: 2
-# Priority: medium
-# Description: Create the landing page with service introduction, features overview, and a call-to-action button to start the color analysis process.
+# Priority: high
+# Description: Create a service to handle direct integration with OpenAI's Vision API, including proper error handling, rate limiting, and error recovery.
 # Details:
-1. Design and implement a visually appealing hero section
-2. Create service introduction section explaining personal color analysis
-3. Add features overview with icons and brief descriptions
-4. Implement a prominent 'Start Analysis' CTA button
-5. Add sample results to showcase the service
-6. Include information about the four color types (Spring Warm, Summer Cool, Fall Warm, Winter Cool)
-7. Ensure mobile responsiveness
-
-Example component structure:
-```jsx
-function LandingPage() {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Hero Section */}
-      <section className="text-center py-12">
-        <h1 className="text-4xl font-bold mb-4">Discover Your Personal Color</h1>
-        <p className="text-xl mb-8">Find the colors that complement your natural beauty</p>
-        <button 
-          onClick={() => navigate('/capture')} 
-          className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
-        >
-          Start Analysis
-        </button>
-      </section>
-      
-      {/* Features Section */}
-      {/* Color Types Section */}
-      {/* How It Works Section */}
-    </div>
-  );
-}
-```
+1. Create an API service in `/src/services/openai.js`:
+   ```javascript
+   import axios from 'axios';
+   import { config } from './config';
+   
+   // Create axios instance with base configuration
+   const openaiApi = axios.create({
+     baseURL: config.openai.apiUrl,
+     headers: {
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${config.openai.apiKey}`
+     }
+   });
+   
+   // Implement retry logic with exponential backoff
+   const MAX_RETRIES = 3;
+   const RETRY_DELAY = 1000; // ms
+   
+   const analyzeImage = async (imageData, retries = 0) => {
+     try {
+       const response = await openaiApi.post('/chat/completions', {
+         model: "gpt-4-vision-preview",
+         messages: [
+           {
+             role: "user",
+             content: [
+               { type: "text", text: "Analyze this person's image and determine their personal color season type (Spring Warm, Summer Cool, Fall Warm, or Winter Cool). Provide recommended colors and colors to avoid." },
+               {
+                 type: "image_url",
+                 image_url: {
+                   url: imageData
+                 }
+               }
+             ]
+           }
+         ],
+         max_tokens: 500
+       });
+       
+       return response.data;
+     } catch (error) {
+       if (error.response) {
+         // Handle rate limiting
+         if (error.response.status === 429 && retries < MAX_RETRIES) {
+           const delay = RETRY_DELAY * Math.pow(2, retries);
+           console.log(`Rate limited. Retrying in ${delay}ms...`);
+           await new Promise(resolve => setTimeout(resolve, delay));
+           return analyzeImage(imageData, retries + 1);
+         }
+         
+         // Handle other API errors
+         throw new Error(`API Error: ${error.response.status} - ${error.response.data.error?.message || 'Unknown error'}`);
+       }
+       
+       // Handle network errors
+       throw new Error(`Network Error: ${error.message}`);
+     }
+   };
+   
+   // Parse the OpenAI response to extract color analysis results
+   const parseAnalysisResult = (apiResponse) => {
+     try {
+       const content = apiResponse.choices[0].message.content;
+       
+       // Extract color type, recommended colors, and colors to avoid using regex or string parsing
+       // This is a simplified example - actual implementation would be more robust
+       const colorTypeMatch = content.match(/type:\s*(Spring Warm|Summer Cool|Fall Warm|Winter Cool)/i);
+       const colorType = colorTypeMatch ? colorTypeMatch[1] : 'Unknown';
+       
+       // Return structured data
+       return {
+         colorType,
+         confidence: 0.85, // Placeholder - would be extracted from response if available
+         recommendedColors: extractColors(content, 'recommended'),
+         avoidColors: extractColors(content, 'avoid'),
+         characteristics: extractCharacteristics(content)
+       };
+     } catch (error) {
+       console.error('Error parsing analysis result:', error);
+       throw new Error('Failed to parse color analysis results');
+     }
+   };
+   
+   // Helper functions to extract data from the response
+   const extractColors = (content, type) => {
+     // Implementation would extract color codes or names based on the response format
+     return ['#SAMPLE1', '#SAMPLE2']; // Placeholder
+   };
+   
+   const extractCharacteristics = (content) => {
+     // Implementation would extract characteristics from the response
+     return ['Characteristic 1', 'Characteristic 2']; // Placeholder
+   };
+   
+   export { analyzeImage, parseAnalysisResult };
+   ```
+2. Implement request throttling to prevent excessive API calls
+3. Add comprehensive error handling for different API error scenarios
+4. Create response parsing utilities to extract structured data from API responses
 
 # Test Strategy:
-1. Verify that all content is displayed correctly
-2. Test the CTA button navigation to the capture page
-3. Check responsive design on different screen sizes
-4. Verify that all images load correctly
-5. Test accessibility using keyboard navigation and screen readers
+1. Unit test the API service with mocked responses
+2. Test error handling with simulated API errors
+3. Verify retry logic works with simulated rate limiting
+4. Test response parsing with sample API responses
+5. Validate that the service correctly handles different image formats
+6. Ensure proper error propagation to the UI layer
+
+# Subtasks:
+## 1. Set up OpenAI API client [pending]
+### Dependencies: None
+### Description: Initialize the OpenAI API client with necessary configurations and authentication
+### Details:
+Install required libraries, set up API key securely, and configure base URL and version
+
+## 2. Implement rate limiting mechanism [pending]
+### Dependencies: 3.1
+### Description: Design and implement a rate limiting system to comply with OpenAI API usage limits
+### Details:
+Use a token bucket algorithm or similar approach to manage API request frequency
+
+## 3. Create API request handler [pending]
+### Dependencies: 3.1, 3.2
+### Description: Develop a function to handle API requests, including retries and timeouts
+### Details:
+Implement asynchronous request handling with proper error catching and retry logic
+
+## 4. Implement error handling [pending]
+### Dependencies: 3.3
+### Description: Design a comprehensive error handling system for various API response scenarios
+### Details:
+Handle network errors, API errors, and unexpected responses with appropriate logging and user feedback
+
+## 5. Develop response parsing module [pending]
+### Dependencies: 3.3, 3.4
+### Description: Create a module to parse and process API responses into application-specific data structures
+### Details:
+Implement JSON parsing, data validation, and transformation of API responses into usable format
+
+## 6. Integrate with application state management [pending]
+### Dependencies: 3.5
+### Description: Connect the API integration with the application's state management system
+### Details:
+Update application state based on API responses, handle loading states, and manage data persistence if required
+

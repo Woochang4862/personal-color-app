@@ -1,39 +1,67 @@
 # Task ID: 2
-# Title: Create Basic Routing and Layout Structure
-# Status: done
+# Title: Implement Environment Configuration
+# Status: pending
 # Dependencies: 1
 # Priority: high
-# Description: Implement the basic routing structure for the application and create layout components that will be shared across different pages.
+# Description: Set up environment variable management for secure API key handling and configuration settings.
 # Details:
-1. Create a layout component with header and footer
-2. Set up React Router in App.jsx:
-```jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import LandingPage from './pages/LandingPage';
-import CapturePage from './pages/CapturePage';
-import ResultPage from './pages/ResultPage';
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<LandingPage />} />
-          <Route path="capture" element={<CapturePage />} />
-          <Route path="result" element={<ResultPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
-}
-```
-3. Create placeholder components for each page
-4. Implement responsive layout using Tailwind CSS
-5. Create navigation between pages
+1. Create `.env.example` and `.env` files for environment variables
+2. Add OpenAI API key configuration:
+   ```
+   VITE_OPENAI_API_KEY=your_api_key_here
+   VITE_OPENAI_API_URL=https://api.openai.com/v1
+   ```
+3. Implement a configuration service in `/src/services/config.js`:
+   ```javascript
+   export const config = {
+     openai: {
+       apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+       apiUrl: import.meta.env.VITE_OPENAI_API_URL,
+     },
+     // Add other configuration settings as needed
+   };
+   
+   // Validate configuration
+   export const validateConfig = () => {
+     if (!config.openai.apiKey) {
+       console.error('OpenAI API key is missing');
+       return false;
+     }
+     return true;
+   };
+   ```
+4. Add `.env` to `.gitignore` to prevent API key exposure
+5. Create a README.md with setup instructions for environment variables
+6. Implement configuration validation on application startup
 
 # Test Strategy:
-1. Test navigation between pages using React Router links
-2. Verify that the layout is applied consistently across all pages
-3. Test responsive design by resizing browser window
-4. Verify that routes work correctly by directly accessing URLs
+1. Verify that environment variables are correctly loaded
+2. Test configuration validation function with missing API key
+3. Ensure API key is not exposed in client-side bundle
+4. Confirm that configuration service correctly provides values to other parts of the application
+
+# Subtasks:
+## 1. Define environment variables [pending]
+### Dependencies: None
+### Description: Identify and list all required environment variables for the project
+### Details:
+Review the project requirements, database connections, API keys, and other configuration needs. Create a comprehensive list of all environment variables needed across different environments.
+
+## 2. Implement secure storage for sensitive data [pending]
+### Dependencies: 2.1
+### Description: Set up a secure method to store and manage sensitive environment variables
+### Details:
+Research and implement a secure vault or secret management system (e.g., HashiCorp Vault, AWS Secrets Manager) to store sensitive information like API keys and database passwords.
+
+## 3. Configure environment-specific setups [pending]
+### Dependencies: 2.1, 2.2
+### Description: Set up environment variables for development, staging, and production environments
+### Details:
+Create separate configuration files or use environment-specific tools to manage variables for each environment (development, staging, production). Ensure that sensitive data is not hardcoded and is securely fetched from the storage implemented in subtask 2.
+
+## 4. Implement access controls and monitoring [pending]
+### Dependencies: 2.2, 2.3
+### Description: Set up access controls and monitoring for environment variables
+### Details:
+Implement role-based access controls for managing environment variables. Set up monitoring and alerting for any unauthorized access attempts or changes to critical environment variables.
+

@@ -59,12 +59,7 @@ const CapturePage = () => {
     try {
       setError(null);
       
-      // GitHub Pages 배포 환경에서는 백엔드 API가 없으므로 항상 목업 API 사용
-      // const isProd = import.meta.env.MODE === 'production';
-      // const result = isProd
-      //   ? await colorAnalysisService.analyzeImage(imageToAnalyze, { maxRetries: 2 })
-      //   : await colorAnalysisService.analyzeImageMock(imageToAnalyze);
-      
+      // analyzeImageMock 함수를 사용하여 분석 요청 (이제 실제 API 호출을 구현함)
       const result = await colorAnalysisService.analyzeImageMock(imageToAnalyze);
       
       if (result.success) {

@@ -1,102 +1,168 @@
 # Task ID: 5
-# Title: Implement Image Upload Functionality
+# Title: Implement Color Analysis Context and Hooks
 # Status: pending
-# Dependencies: 2
+# Dependencies: 3
 # Priority: medium
-# Description: Create functionality for users to upload existing images from their device as an alternative to webcam capture.
+# Description: Create React Context and custom hooks for managing the color analysis state and API interactions.
 # Details:
-1. Create a file input component for image uploads
-2. Implement drag-and-drop functionality for better UX
-3. Add file validation (type, size, dimensions)
-4. Show preview of uploaded image
-5. Provide option to remove and select a different image
+1. Create a ColorAnalysisContext in `/src/context/ColorAnalysisContext.jsx`:
+   ```jsx
+   import React, { createContext, useContext, useReducer } from 'react';
+   
+   // Initial state
+   const initialState = {
+     image: null,
+     isAnalyzing: false,
+     result: null,
+     error: null,
+   };
+   
+   // Action types
+   const SET_IMAGE = 'SET_IMAGE';
+   const START_ANALYSIS = 'START_ANALYSIS';
+   const ANALYSIS_SUCCESS = 'ANALYSIS_SUCCESS';
+   const ANALYSIS_FAILURE = 'ANALYSIS_FAILURE';
+   const RESET = 'RESET';
+   
+   // Reducer function
+   const colorAnalysisReducer = (state, action) => {
+     switch (action.type) {
+       case SET_IMAGE:
+         return { ...state, image: action.payload, error: null };
+       case START_ANALYSIS:
+         return { ...state, isAnalyzing: true, error: null };
+       case ANALYSIS_SUCCESS:
+         return { 
+           ...state, 
+           isAnalyzing: false, 
+           result: action.payload, 
+           error: null 
+         };
+       case ANALYSIS_FAILURE:
+         return { 
+           ...state, 
+           isAnalyzing: false, 
+           error: action.payload 
+         };
+       case RESET:
+         return initialState;
+       default:
+         return state;
+     }
+   };
+   
+   // Create context
+   const ColorAnalysisContext = createContext();
+   
+   // Context provider component
+   export const ColorAnalysisProvider = ({ children }) => {
+     const [state, dispatch] = useReducer(colorAnalysisReducer, initialState);
+     
+     return (
+       <ColorAnalysisContext.Provider value={{ state, dispatch }}>
+         {children}
+       </ColorAnalysisContext.Provider>
+     );
+   };
+   
+   // Custom hook for using the context
+   export const useColorAnalysis = () => {
+     const context = useContext(ColorAnalysisContext);
+     if (!context) {
+       throw new Error('useColorAnalysis must be used within a ColorAnalysisProvider');
+     }
+     return context;
+   };
+   ```
 
-Example implementation:
-```jsx
-import { useState, useRef } from 'react';
+2. Create a custom hook for color analysis in `/src/hooks/useColorAnalyzer.js`:
+   ```javascript
+   import { useCallback } from 'react';
+   import { useColorAnalysis } from '../context/ColorAnalysisContext';
+   import { analyzeImage, parseAnalysisResult } from '../services/openai';
+   
+   export const useColorAnalyzer = () => {
+     const { state, dispatch } = useColorAnalysis();
+     
+     const setImage = useCallback((imageData) => {
+       dispatch({ type: 'SET_IMAGE', payload: imageData });
+     }, [dispatch]);
+     
+     const analyzeColor = useCallback(async (imageData) => {
+       if (!imageData) {
+         dispatch({ 
+           type: 'ANALYSIS_FAILURE', 
+           payload: 'No image provided for analysis' 
+         });
+         return;
+       }
+       
+       try {
+         dispatch({ type: 'START_ANALYSIS' });
+         
+         // Call OpenAI API service
+         const apiResponse = await analyzeImage(imageData);
+         
+         // Parse the response
+         const result = parseAnalysisResult(apiResponse);
+         
+         dispatch({ type: 'ANALYSIS_SUCCESS', payload: result });
+         return result;
+       } catch (error) {
+         console.error('Color analysis failed:', error);
+         dispatch({ 
+           type: 'ANALYSIS_FAILURE', 
+           payload: error.message || 'Failed to analyze image' 
+         });
+       }
+     }, [dispatch]);
+     
+     const resetAnalysis = useCallback(() => {
+       dispatch({ type: 'RESET' });
+     }, [dispatch]);
+     
+     return {
+       image: state.image,
+       isAnalyzing: state.isAnalyzing,
+       result: state.result,
+       error: state.error,
+       setImage,
+       analyzeColor,
+       resetAnalysis
+     };
+   };
+   ```
 
-function ImageUpload({ onImageUpload }) {
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    validateAndProcessFile(file);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    validateAndProcessFile(file);
-  };
-
-  const validateAndProcessFile = (file) => {
-    setError(null);
-    
-    // Validate file type
-    if (!file.type.match('image.*')) {
-      setError('Please upload an image file (JPEG, PNG, etc.)');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size should be less than 5MB');
-      return;
-    }
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreview(reader.result);
-      setImage(file);
-      onImageUpload(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeImage = () => {
-    setImage(null);
-    setPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  return (
-    <div className="upload-container">
-      {preview ? (
-        <div className="preview-container">
-          <img src={preview} alt="Preview" className="image-preview" />
-          <button onClick={removeImage}>Remove</button>
-        </div>
-      ) : (
-        <div 
-          className="dropzone"
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          <input 
-            type="file" 
-            accept="image/*" 
-            onChange={handleFileChange} 
-            ref={fileInputRef}
-          />
-          <p>Drag and drop an image or click to select</p>
-        </div>
-      )}
-      {error && <p className="error-message">{error}</p>}
-    </div>
-  );
-}
-```
+3. Update the main App component to use the provider:
+   ```jsx
+   import React from 'react';
+   import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+   import { ColorAnalysisProvider } from './context/ColorAnalysisContext';
+   import HomePage from './pages/HomePage';
+   import AnalysisPage from './pages/AnalysisPage';
+   import ResultsPage from './pages/ResultsPage';
+   
+   function App() {
+     return (
+       <ColorAnalysisProvider>
+         <Router>
+           <Routes>
+             <Route path="/" element={<HomePage />} />
+             <Route path="/analyze" element={<AnalysisPage />} />
+             <Route path="/results" element={<ResultsPage />} />
+           </Routes>
+         </Router>
+       </ColorAnalysisProvider>
+     );
+   }
+   
+   export default App;
+   ```
 
 # Test Strategy:
-1. Test uploading different image formats (JPEG, PNG, etc.)
-2. Verify file size validation works correctly
-3. Test drag-and-drop functionality
-4. Verify that the preview displays correctly
-5. Test the remove functionality
-6. Verify that the uploaded image is in the correct format for API submission
+1. Unit test the reducer function with all action types
+2. Test the context provider with mock children components
+3. Verify the custom hook correctly interacts with the OpenAI service
+4. Test error handling in the useColorAnalyzer hook
+5. Validate state transitions during the analysis process
+6. Ensure proper cleanup and reset functionality

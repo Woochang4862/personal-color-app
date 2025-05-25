@@ -1,70 +1,204 @@
 # Task ID: 8
-# Title: Create Loading Animation Component
+# Title: Implement Error Handling and Loading States
 # Status: pending
-# Dependencies: 2
-# Priority: low
-# Description: Develop an engaging loading animation to display while the color analysis is being processed.
+# Dependencies: 3, 4, 5
+# Priority: medium
+# Description: Create comprehensive error handling and loading state indicators throughout the application for a better user experience.
 # Details:
-1. Create a reusable loading component with animation
-2. Implement progress indication if possible
-3. Add informative messages during loading
-4. Ensure accessibility for screen readers
+1. Create a LoadingIndicator component in `/src/components/LoadingIndicator.jsx`:
+   ```jsx
+   import React from 'react';
+   
+   const LoadingIndicator = ({ message = 'Loading...' }) => {
+     return (
+       <div className="loading-container">
+         <div className="loading-spinner">
+           <div className="spinner-circle"></div>
+         </div>
+         <p className="loading-message">{message}</p>
+       </div>
+     );
+   };
+   
+   export default LoadingIndicator;
+   ```
 
-Example implementation:
-```jsx
-import { useState, useEffect } from 'react';
+2. Create an ErrorMessage component in `/src/components/ErrorMessage.jsx`:
+   ```jsx
+   import React from 'react';
+   
+   const ErrorMessage = ({ error, retry = null }) => {
+     return (
+       <div className="error-container">
+         <div className="error-icon">⚠️</div>
+         <h3 className="error-title">Something went wrong</h3>
+         <p className="error-message">{error}</p>
+         {retry && (
+           <button onClick={retry} className="retry-button">
+             Try Again
+           </button>
+         )}
+       </div>
+     );
+   };
+   
+   export default ErrorMessage;
+   ```
 
-function LoadingAnimation({ message = 'Analyzing your personal color...' }) {
-  const [dots, setDots] = useState('.');
-  const [tipIndex, setTipIndex] = useState(0);
-  
-  const tips = [
-    'Did you know? Personal color analysis was developed in the 1980s.',
-    'Your skin undertone determines which colors complement you best.',
-    'There are four main seasonal color types: Spring, Summer, Fall, and Winter.',
-    'Wearing your personal colors can make you look more vibrant and healthy.',
-  ];
-  
-  // Animate the dots
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '.' : prev + '.');
-    }, 500);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Rotate through tips
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTipIndex(prev => (prev + 1) % tips.length);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [tips.length]);
-  
-  return (
-    <div className="loading-container text-center py-12" role="alert" aria-live="polite">
-      <div className="spinner mb-6">
-        {/* SVG spinner or CSS animation */}
-        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-      </div>
-      
-      <p className="text-xl font-medium mb-2">{message}{dots}</p>
-      
-      <div className="tip mt-8 p-4 bg-gray-100 rounded-lg max-w-md mx-auto">
-        <p className="text-sm text-gray-600">{tips[tipIndex]}</p>
-      </div>
-    </div>
-  );
-}
+3. Create a global error boundary in `/src/components/ErrorBoundary.jsx`:
+   ```jsx
+   import React, { Component } from 'react';
+   import ErrorMessage from './ErrorMessage';
+   
+   class ErrorBoundary extends Component {
+     constructor(props) {
+       super(props);
+       this.state = { hasError: false, error: null };
+     }
+     
+     static getDerivedStateFromError(error) {
+       return { hasError: true, error: error.message };
+     }
+     
+     componentDidCatch(error, errorInfo) {
+       console.error('Error caught by boundary:', error, errorInfo);
+     }
+     
+     handleReset = () => {
+       this.setState({ hasError: false, error: null });
+     };
+     
+     render() {
+       if (this.state.hasError) {
+         return (
+           <div className="error-boundary">
+             <ErrorMessage 
+               error={this.state.error || 'An unexpected error occurred'} 
+               retry={this.handleReset} 
+             />
+           </div>
+         );
+       }
+       
+       return this.props.children;
+     }
+   }
+   
+   export default ErrorBoundary;
+   ```
 
-export default LoadingAnimation;
-```
+4. Update the App component to use the ErrorBoundary:
+   ```jsx
+   import React from 'react';
+   import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+   import { ColorAnalysisProvider } from './context/ColorAnalysisContext';
+   import ErrorBoundary from './components/ErrorBoundary';
+   import HomePage from './pages/HomePage';
+   import AnalysisPage from './pages/AnalysisPage';
+   import ResultsPage from './pages/ResultsPage';
+   
+   function App() {
+     return (
+       <ErrorBoundary>
+         <ColorAnalysisProvider>
+           <Router>
+             <Routes>
+               <Route path="/" element={<HomePage />} />
+               <Route path="/analyze" element={<AnalysisPage />} />
+               <Route path="/results" element={<ResultsPage />} />
+             </Routes>
+           </Router>
+         </ColorAnalysisProvider>
+       </ErrorBoundary>
+     );
+   }
+   
+   export default App;
+   ```
+
+5. Create a utility for handling API errors in `/src/utils/errorHandling.js`:
+   ```javascript
+   // Map API error codes to user-friendly messages
+   const errorMessages = {
+     'unauthorized': 'API key is invalid or expired. Please check your configuration.',
+     'rate_limit_exceeded': 'Too many requests. Please try again in a moment.',
+     'bad_request': 'The request was invalid. Please try a different image.',
+     'server_error': 'The service is currently unavailable. Please try again later.',
+     'timeout': 'The request timed out. Please check your internet connection and try again.',
+     'network_error': 'Network error. Please check your internet connection.',
+     'default': 'An unexpected error occurred. Please try again later.'
+   };
+   
+   // Convert technical error to user-friendly message
+   export const getUserFriendlyErrorMessage = (error) => {
+     if (!error) return errorMessages.default;
+     
+     // Handle Axios errors
+     if (error.isAxiosError) {
+       if (!error.response) return errorMessages.network_error;
+       
+       const status = error.response.status;
+       
+       if (status === 401) return errorMessages.unauthorized;
+       if (status === 429) return errorMessages.rate_limit_exceeded;
+       if (status >= 400 && status < 500) return errorMessages.bad_request;
+       if (status >= 500) return errorMessages.server_error;
+     }
+     
+     // Handle timeout errors
+     if (error.message && error.message.includes('timeout')) {
+       return errorMessages.timeout;
+     }
+     
+     // Handle specific error types from our API service
+     if (error.code) {
+       return errorMessages[error.code] || errorMessages.default;
+     }
+     
+     // Return the error message or default message
+     return error.message || errorMessages.default;
+   };
+   
+   // Log errors to console in development, could be extended to send to monitoring service
+   export const logError = (error, context = {}) => {
+     if (process.env.NODE_ENV !== 'production') {
+       console.error('Error:', error, 'Context:', context);
+     }
+     
+     // Here you could add error reporting to a service like Sentry
+   };
+   ```
+
+6. Update the OpenAI service to use the error handling utilities:
+   ```javascript
+   import axios from 'axios';
+   import { config } from './config';
+   import { getUserFriendlyErrorMessage, logError } from '../utils/errorHandling';
+   
+   // ... existing code ...
+   
+   const analyzeImage = async (imageData, retries = 0) => {
+     try {
+       // ... existing code ...
+     } catch (error) {
+       logError(error, { retries });
+       
+       if (error.response) {
+         // ... existing retry logic ...
+       }
+       
+       // Convert to user-friendly error
+       throw new Error(getUserFriendlyErrorMessage(error));
+     }
+   };
+   ```
 
 # Test Strategy:
-1. Verify that the animation displays correctly
-2. Test that the dots animation works
-3. Verify that tips rotate correctly
-4. Test accessibility with screen readers
-5. Verify that the component can be easily integrated into different pages
+1. Test LoadingIndicator component with different messages
+2. Verify ErrorMessage component displays errors correctly
+3. Test ErrorBoundary by triggering errors in child components
+4. Validate error handling utilities with various error types
+5. Test API error handling with mocked API responses
+6. Verify that user-friendly error messages are displayed
+7. Test loading states during API calls
+8. Ensure error recovery and retry mechanisms work correctly

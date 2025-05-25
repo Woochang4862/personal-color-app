@@ -1,4 +1,53 @@
-# 퍼스널 컬러 진단 웹 서비스 PRD
+# Personal Color Analysis Web Application PRD
+
+## Project Overview
+Convert a Python-based personal color analysis application to a client-side JavaScript implementation that directly interacts with the OpenAI API.
+
+## Core Requirements
+
+1. Client-Side Implementation
+   - Remove server-side dependencies (Python/FastAPI)
+   - Implement all functionality in JavaScript
+   - Direct OpenAI API integration from the frontend
+
+2. API Integration
+   - Secure API key management using environment variables
+   - Proper error handling for API calls
+   - Implement rate limiting and error recovery
+
+3. Color Analysis Features
+   - Image processing and analysis using OpenAI's Vision API
+   - Personal color diagnosis based on image analysis
+   - Clear presentation of analysis results
+
+4. Environment Configuration
+   - Environment variable management
+   - API key security
+   - Configuration file setup
+
+## Technical Requirements
+
+1. JavaScript Implementation
+   - Modern ES module syntax
+   - Proper error handling
+   - Clean code structure and organization
+
+2. Security
+   - Secure API key management
+   - Input validation
+   - Error handling
+
+3. User Experience
+   - Clear feedback during analysis
+   - Error messages when needed
+   - Loading states during API calls
+
+## Success Criteria
+- Successful conversion from Python to JavaScript
+- Maintained functionality of personal color analysis
+- Secure API key management
+- Proper error handling
+- Clean, maintainable code structure
 
 ## 개요
 퍼스널 컬러 진단 웹 서비스는 사용자가 웹 브라우저에서 자신의 사진을 촬영하고 AI 기반 분석을 통해 자신의 퍼스널 컬러 타입을 확인할 수 있는 서비스입니다. 이 서비스는 복잡한 회원가입이나 로그인 없이 즉시 사용할 수 있으며, 사용자에게 직관적이고 시각적인 결과를 제공합니다. 퍼스널 컬러에 대한 지식이 없는 사용자도 쉽게 자신에게 어울리는 색상을 파악할 수 있습니다.

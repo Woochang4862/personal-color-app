@@ -168,45 +168,108 @@ const colorAnalysisService = {
         throw new Error('이미지 데이터가 없습니다.');
       }
       
-      logger.debug('목업 이미지 분석 시작');
+      logger.debug('외부 API를 통한 이미지 분석 시작');
       
-      // 백엔드 API가 준비되지 않은 경우 사용할 임시 구현
-      return await new Promise((resolve, reject) => {
-        // 2초 지연 후 결과 반환 (API 호출 시뮬레이션)
-        setTimeout(() => {
-          // 5%의 확률로 오류 발생 시뮬레이션
-          if (Math.random() < 0.05) {
-            logger.warn('목업 분석 의도적 실패 (시뮬레이션)');
-            reject(new Error('목업 분석 실패 (시뮬레이션)'));
-            return;
-          }
-          
-          // 가능한 결과 타입들
-          const resultTypes = [
-            'spring-warm',
-            'summer-cool',
-            'fall-warm',
-            'winter-cool'
-          ];
-          
-          // 랜덤 결과 선택
-          const resultType = resultTypes[Math.floor(Math.random() * resultTypes.length)];
-          const confidence = Math.floor(Math.random() * 20 + 80); // 80~99% 신뢰도
-          
-          logger.info('목업 이미지 분석 완료', { colorType: resultType, confidence });
-          
-          resolve({
-            success: true,
-            data: {
-              colorType: resultType,
-              confidence,
-              imageUrl: imageData // 원본 이미지 그대로 반환
-            }
+      try {
+        // Base64 이미지 데이터를 Blob으로 변환
+        const blob = await fetch(imageData).then(r => r.blob());
+        
+        // 유효한 이미지 형식 확인
+        if (!blob.type.startsWith('image/')) {
+          throw new Error('유효하지 않은 이미지 형식입니다.');
+        }
+        
+        // 이미지 크기 확인 (10MB 제한)
+        if (blob.size > 10 * 1024 * 1024) {
+          throw new Error('이미지 크기가 너무 큽니다. 10MB 이하의 이미지를 사용해주세요.');
+        }
+        
+        // FormData 객체 생성 및 파일 추가
+        const formData = new FormData();
+        formData.append('file', blob, 'image.jpg');
+        
+        // 외부 API URL 설정 (환경 변수에서 가져오거나 기본값 사용)
+        const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://localhost:8000/analyze-image/';
+        
+        // API 요청 시작
+        logger.info('외부 API 요청 시작', { url: apiUrl });
+        
+        // fetch API를 사용한 요청
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        // 응답 상태 확인
+        if (!response.ok) {
+          logger.error('API 응답 오류', { 
+            status: response.status, 
+            statusText: response.statusText 
           });
-        }, 2000);
-      });
+          throw new Error(`API 오류: ${response.status} ${response.statusText}`);
+        }
+        
+        // JSON 응답 파싱
+        const result = await response.json();
+        logger.info('외부 API 응답 원본', result);
+        const {season, probabilities, reason, description, feature, recommend, avoid} = result;
+        logger.info('외부 API 요청 성공', { season, probabilities, reason, description, feature, recommend, avoid });
+        
+        // 결과 포맷팅 및 반환
+        return {
+          success: true,
+          data: {
+            // 외부 API 응답을 내부 형식에 맞게 변환
+            colorType: season || 'unknown',
+            confidence: probabilities[season?.charAt(0).toUpperCase() + season?.slice(1).toLowerCase()] || 0,
+            imageUrl: imageData,
+            description,
+            feature,
+            recommend,
+            avoid,
+            // 원본 응답 데이터도 포함
+            apiResponse: {season, probabilities, reason, description, feature, recommend, avoid}
+          }
+        };
+        
+      } catch (apiError) {
+        logger.error('외부 API 요청 실패', { error: apiError.message });
+        
+        // API 오류 시 대체 로직 (랜덤 결과 반환)
+        logger.warn('API 오류로 인한 목업 데이터 사용');
+        
+        // 가능한 결과 타입들
+        const resultTypes = [
+          'spring-warm',
+          'summer-cool',
+          'fall-warm',
+          'winter-cool'
+        ];
+        
+        // 랜덤 결과 선택
+        const resultType = resultTypes[Math.floor(Math.random() * resultTypes.length)];
+        const confidence = Math.floor(Math.random() * 20 + 80); // 80~99% 신뢰도
+        
+        logger.info('API 오류 대체 결과 생성', { 
+          colorType: resultType, 
+          confidence,
+          error: apiError.message
+        });
+        
+        return {
+          success: true,
+          data: {
+            colorType: resultType,
+            confidence,
+            imageUrl: imageData,
+            // 오류 정보도 포함
+            error: apiError.message,
+            fallbackMode: true
+          }
+        };
+      }
     } catch (error) {
-      logger.error('목업 이미지 분석 중 오류:', error);
+      logger.error('이미지 분석 처리 중 오류:', error);
       throw error;
     } finally {
       // 로딩 상태 해제
@@ -320,7 +383,7 @@ const colorAnalysisService = {
             success: true,
             data: {
               types: {
-                'spring-warm': {
+                '봄 웜톤': {
                   title: '봄 웜톤',
                   description: '밝고 선명한 컬러가 어울리는 봄 웜톤입니다. 노란빛이 도는 따뜻한 색조가 잘 어울립니다.',
                   characteristics: [
@@ -331,7 +394,7 @@ const colorAnalysisService = {
                   recommendedColors: ['#FF9E2C', '#FFE143', '#FF5C00', '#FFA629', '#FFCA3E', '#FF8674'],
                   avoidColors: ['#808080', '#000080', '#4B0082', '#6B8E23', '#708090']
                 },
-                'summer-cool': {
+                '여름 쿨톤': {
                   title: '여름 쿨톤',
                   description: '부드럽고 밝은 파스텔 컬러가 어울리는 여름 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
                   characteristics: [
@@ -342,7 +405,7 @@ const colorAnalysisService = {
                   recommendedColors: ['#7A9CC6', '#E8C6C6', '#D2E8E8', '#C2C2D1', '#AEC9C9', '#BDABBE'],
                   avoidColors: ['#FF7518', '#FFA500', '#A0522D', '#F0E68C', '#CD853F']
                 },
-                'fall-warm': {
+                '가을 웜톤': {
                   title: '가을 웜톤',
                   description: '깊고 중후한 컬러가 어울리는 가을 웜톤입니다. 노란빛이 도는 깊은 색조가 잘 어울립니다.',
                   characteristics: [
@@ -353,7 +416,7 @@ const colorAnalysisService = {
                   recommendedColors: ['#825C06', '#987D51', '#814E18', '#6F5946', '#BE8A4A', '#947A45'],
                   avoidColors: ['#FF80AB', '#80DEEA', '#B39DDB', '#E6E6FA', '#000000']
                 },
-                'winter-cool': {
+                '겨울 쿨톤': {
                   title: '겨울 쿨톤',
                   description: '선명하고 강한 컬러가 어울리는 겨울 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
                   characteristics: [
