@@ -34,7 +34,7 @@ const Layout = () => {
           } />
           <Route path="result" element={
             <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-7xl mx-auto w-full">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
+              <div className="bg-white p-6">
                 <ResultPage />
               </div>
             </div>

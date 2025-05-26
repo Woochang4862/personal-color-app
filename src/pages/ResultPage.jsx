@@ -263,7 +263,7 @@ const ResultPage = () => {
   const avoid = resultData.avoid || resultData.apiResponse.avoid;
   
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-9xl px-4 py-8">
       {error ? (
         <div className="text-center">
           <div className="mb-8 p-5 bg-red-50 border border-red-200 text-red-600 rounded-xl">
@@ -285,15 +285,20 @@ const ResultPage = () => {
         <div>
           {/* 결과 카드 */}
           <div ref={resultCardRef} className="bg-white rounded-2xl border border-gray-200 shadow-lg p-8 mb-8">
-            <div className="text-center mb-8">
+            <div className="text-left mb-8">
               <h2 className="text-4xl font-bold text-gray-800 mb-4">
                 당신의 퍼스널 컬러는
-                <br />
-                <span className="text-gradient">{colorType}</span>
+                
+                <span className="text-gradient"> {colorType}</span>
                 입니다
               </h2>
-              <p className="text-gray-600 text-lg">
+              
+              <p className="text-gray-600 text-lg text-left mb-4">
                 {description}
+              </p>
+              
+              <p className="text-gray-600 text-lg text-left">
+                {reason}
               </p>
             </div>
 
