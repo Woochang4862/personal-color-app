@@ -53,7 +53,7 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-black/30 backdrop-blur-md rounded-xl overflow-hidden shadow-2xl border border-white/10">
+      <div className="backdrop-blur-md rounded-xl overflow-hidden border border-white/10">
         {error ? (
           <div className="p-6 text-red-400 bg-black/40 backdrop-blur-md rounded-lg">
             <p>{error}</p>
@@ -105,7 +105,7 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
                     height: 480,
                     facingMode: "user",
                   }}
-                  mirrored={false}
+                  mirrored={true}
                   onUserMediaError={handleUserMediaError}
                   className="w-full rounded-lg"
                 />
@@ -132,7 +132,7 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
                 사진 촬영
               </button>
             </div>
-            <p className="mt-3 text-xs text-white/70 text-center">
+            <p className="mt-3 text-xs text-gray-500 text-center">
               스페이스바를 눌러 촬영할 수 있습니다
             </p>
           </div>

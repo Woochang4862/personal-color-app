@@ -5,7 +5,7 @@ import useApiStatus from '../hooks/useApiStatus';
 import html2canvas from 'html2canvas';
 
 // 퍼스널 컬러 타입 정의
-const colorTypes = {
+const colorTypeInfo = {
   'spring-warm': {
     title: '봄 웜톤',
     description: '밝고 선명한 컬러가 어울리는 봄 웜톤입니다. 노란빛이 도는 따뜻한 색조가 잘 어울립니다.',
@@ -263,108 +263,118 @@ const ResultPage = () => {
   const avoid = resultData.avoid || resultData.apiResponse.avoid;
   
   return (
-    <div className="text-center pb-10">
-      {/* 결과를 담은 메인 컨테이너를 resultCardRef로 참조 */}
-      <div ref={resultCardRef} className="result-content mb-16">
-        <h2 className="text-5xl font-bold mb-10 text-white modern-text tracking-tight">
-          퍼스널 컬러 <span className="text-primary">분석 결과</span>
-        </h2>
-        
-        {/* 대표 톤 이름 표시 */}
-        <div className="mb-8">
-          <span className="text-2xl font-bold text-primary">{colorTypeInfo[colorType].title}</span>
-        </div>
-        
-        {/* 신뢰도/확률 표시 */}
-        {resultData.probabilities ? (
-          <div className="mb-10">
-            <h4 className="text-lg text-white/80 mb-2">톤별 확률</h4>
-            <table className="mx-auto text-white/80 text-base border-separate border-spacing-x-6">
-              <tbody>
-                {Object.entries(resultData.probabilities).map(([tone, prob]) => (
-                  <tr key={tone}>
-                    <td className="font-semibold text-primary text-right pr-2">{tone}</td>
-                    <td className="text-left pl-2">{prob}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {error ? (
+        <div className="text-center">
+          <div className="mb-8 p-5 bg-red-50 border border-red-200 text-red-600 rounded-xl">
+            <p>{error}</p>
           </div>
-        ) : (
-          <div className="mb-10">
-            <div className="flex justify-center items-center">
-              <span className="text-base text-white/80 mr-3">신뢰도:</span>
-              <div className="w-60 h-5 bg-black/40 backdrop-blur-md rounded-full overflow-hidden border border-white/10">
+          <Link
+            to="/capture"
+            className="inline-block btn-gradient font-semibold py-4 px-10 rounded-full text-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl"
+          >
+            다시 촬영하기
+          </Link>
+        </div>
+      ) : isLoading ? (
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">결과를 불러오는 중입니다...</p>
+        </div>
+      ) : (
+        <div>
+          {/* 결과 카드 */}
+          <div ref={resultCardRef} className="bg-white rounded-2xl border border-gray-200 shadow-lg p-8 mb-8">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                당신의 퍼스널 컬러는
+                <br />
+                <span className="text-gradient">{colorType}</span>
+                입니다
+              </h2>
+              <p className="text-gray-600 text-lg">
+                {description}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* 분석된 이미지 */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">분석된 이미지</h3>
+                <div className="aspect-square rounded-xl overflow-hidden border border-gray-200">
+                  <img
+                    src={resultImage}
+                    alt="분석된 이미지"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* 특징 */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">당신의 특징</h3>
+                <ul className="space-y-3">
+                  {feature.map((char, index) => (
+                    <li key={index} className="flex items-start">
+                      <svg className="h-6 w-6 text-primary flex-shrink-0 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <span className="text-gray-600">{char}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* 신뢰도 바 */}
+            <div className="mb-8 mt-12">
+              <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-semibold mb-6 text-gray-800">분석 신뢰도</h3>
+                <span className="text-sm font-medium text-primary">{confidence}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div 
-                  className="h-full bg-primary" 
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500" 
                   style={{ width: `${confidence}` }}
                 ></div>
               </div>
-              <span className="ml-3 text-lg font-semibold text-white">{confidence}</span>
             </div>
-          </div>
-        )}
-        
-        {/* 분석 사유 표시 */}
-        {resultData.reason && (
-          <div className="mb-8 p-4 bg-black/30 rounded-lg border border-white/10 max-w-2xl mx-auto">
-            <h4 className="text-lg font-bold text-primary mb-2">분석 사유</h4>
-            <p className="text-white/80 text-base whitespace-pre-line">{resultData.reason}</p>
-          </div>
-        )}
-        
-        {/* 기존 상세 결과(컬러 정보 등) */}
-        {colorTypeInfo[colorType] && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {/* 촬영된 이미지 */}
-            <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8">
-              <h3 className="text-2xl font-semibold mb-6 text-white">촬영 이미지</h3>
-              {resultImage && (
-                <div className="rounded-lg overflow-hidden border border-white/10">
-                  <img 
-                    src={resultImage} 
-                    alt="분석된 이미지" 
-                    className="w-full max-w-xs mx-auto"
-                  />
-                </div>
-              )}
-            </div>
-            {/* 분석 결과 */}
-            <div className="bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl p-8 text-left">
-              <h3 className="text-3xl font-bold mb-6 text-white text-center">
-                당신은 <span className="text-primary">{colorTypeInfo[colorType].title}</span> 입니다
-              </h3>
-              <p className="mb-6 text-white/80 text-lg leading-relaxed">{reason}</p>
-              <p className="mb-6 text-white/80 text-lg leading-relaxed">{description}</p>
-              <h4 className="font-semibold text-xl mb-4 text-white">특징:</h4>
-              <ul className="list-disc list-inside mb-6 text-white/80 text-lg">
-                {feature.map((char, index) => (
-                  <li key={index} className="mb-2">{char}</li>
-                ))}
-              </ul>
-              <h4 className="font-semibold text-xl mb-4 text-white">추천 컬러:</h4>
-              <div className="flex flex-wrap gap-4 mb-6">
+
+            {/* 추천 컬러 팔레트 */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold text-gray-800">추천 컬러 팔레트</h3>
+              <p className="mt-2 text-gray-600 text-sm text-left mb-4">
+                이 컬러들을 활용하여 의상, 메이크업, 액세서리를 선택해보세요
+              </p>
+              <div className="grid grid-cols-6 gap-4">
                 {recommend.map((color, index) => (
                   <div 
-                    key={index}
-                    className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110 relative group"
+                    key={index} 
+                    className="aspect-square rounded-lg shadow-md relative group"
                     style={{ backgroundColor: color.rgb }}
                   >
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/80 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg transition-opacity duration-200 whitespace-nowrap">
                       {color.name}
                     </div>
                   </div>
                 ))}
               </div>
-              <h4 className="font-semibold text-xl mb-4 text-white">피해야 할 컬러:</h4>
-              <div className="flex flex-wrap gap-4">
+            </div>
+
+            {/* 피해야 할 컬러 */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold text-gray-800">피해야 할 컬러</h3>
+              <p className="mt-2 text-gray-600 text-sm text-left mb-4">
+                이 컬러들은 가급적 피하는 것이 좋습니다
+              </p>
+              <div className="grid grid-cols-6 gap-4">
                 {avoid.map((color, index) => (
                   <div 
-                    key={index}
-                    className="w-14 h-14 rounded-full shadow-lg border border-white/20 transform transition-transform hover:scale-110 relative group"
+                    key={index} 
+                    className="aspect-square rounded-lg shadow-md relative group"
                     style={{ backgroundColor: color.rgb }}
                   >
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/80 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg transition-opacity duration-200 whitespace-nowrap">
                       {color.name}
                     </div>
                   </div>
@@ -372,75 +382,42 @@ const ResultPage = () => {
               </div>
             </div>
           </div>
-        )}
-        
-        {/* 폴백 모드 표시 (API 오류 시) */}
-        {resultData.fallbackMode && (
-          <div className="mb-6 p-3 bg-yellow-900/30 border border-yellow-600/30 text-yellow-400 rounded text-sm">
-            <p>
-              <span className="font-bold">참고:</span> API 연결 오류로 인해 로컬 분석 결과를 표시합니다.
-              {resultData.error && <span className="block mt-1 text-xs">{resultData.error}</span>}
-            </p>
+
+          {/* 버튼 그룹 */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button
+              onClick={downloadResult}
+              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              결과 저장하기
+            </button>
+            <button
+              onClick={shareResult}
+              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+              </svg>
+              결과 공유하기
+            </button>
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              </svg>
+              홈으로 돌아가기
+            </Link>
           </div>
-        )}
-      </div>
-      
-      <div className="flex flex-wrap justify-center gap-6 mb-16">
-        <button
-          onClick={downloadResult}
-          className="px-8 py-4 bg-primary hover:bg-primary-light text-white font-semibold rounded-full text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl flex items-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-          </svg>
-          결과 저장하기
-        </button>
-        <button
-          onClick={shareResult}
-          className="px-8 py-4 bg-black/40 backdrop-blur-sm hover:bg-black/60 text-white font-semibold rounded-full text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl flex items-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-          </svg>
-          결과 공유하기
-        </button>
-        <Link
-          to="/capture"
-          className="px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-full text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl flex items-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
-          다시 촬영하기
-        </Link>
-      </div>
-      
-      <div className="mt-10 p-8 bg-black/30 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl max-w-3xl mx-auto">
-        <h3 className="text-2xl font-semibold mb-6 text-white modern-text">컬러 활용 팁</h3>
-        <p className="text-white/80 mb-6 text-lg leading-relaxed">
-          퍼스널 컬러를 활용하여 다음과 같은 영역에서 당신의 매력을 더욱 돋보이게 하세요:
-        </p>
-        <ul className="list-disc list-inside text-white/80 text-left pl-6 text-lg">
-          <li className="mb-3"><strong className="text-white">의류:</strong> 위에 제안된 컬러 팔레트를 참고하여 의류를 선택하세요.</li>
-          <li className="mb-3"><strong className="text-white">액세서리:</strong> 귀걸이, 목걸이, 시계 등 액세서리도 추천 컬러로 선택하면 좋습니다.</li>
-          <li className="mb-3"><strong className="text-white">메이크업:</strong> 립스틱, 아이섀도우, 블러셔 등의 색상을 선택할 때 참고하세요.</li>
-          <li><strong className="text-white">헤어 염색:</strong> 머리카락 염색 시 어울리는 컬러를 참고하세요.</li>
-        </ul>
-      </div>
-      
-      {/* 하단에 홈으로 이동 버튼 및 스페이스바 안내 추가 */}
-      <div className="mt-16">
-        <Link
-          to="/"
-          className="inline-block bg-primary hover:bg-primary-light text-white font-semibold py-4 px-10 rounded-full text-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl"
-        >
-          홈으로 돌아가기
-        </Link>
-        <p className="mt-4 text-sm text-white/70">
-          스페이스바를 눌러 홈으로 돌아갈 수 있습니다
-        </p>
-      </div>
+          <p className="mt-4 text-sm text-gray-500 text-center">
+            스페이스바를 눌러 홈으로 돌아갈 수 있습니다
+          </p>
+        </div>
+      )}
     </div>
   );
 };
