@@ -5,58 +5,58 @@ import useApiStatus from '../hooks/useApiStatus';
 import html2canvas from 'html2canvas';
 
 // 퍼스널 컬러 타입 정의
-const colorTypeInfo = {
-  'spring-warm': {
-    title: '봄 웜톤',
-    description: '밝고 선명한 컬러가 어울리는 봄 웜톤입니다. 노란빛이 도는 따뜻한 색조가 잘 어울립니다.',
-    characteristics: [
-      '피부톤이 밝고 투명한 아이보리 또는 복숭아빛',
-      '눈동자 색이 선명하고 밝은 갈색이나 다운브라운',
-      '머리카락 색이 밝은 갈색이나 노란기가 도는 갈색'
-    ],
-    recommendedColors: ['#FF9E2C', '#FFE143', '#FF5C00', '#FFA629', '#FFCA3E', '#FF8674'],
-    avoidColors: ['#808080', '#000080', '#4B0082', '#6B8E23', '#708090']
-  },
-  'summer-cool': {
-    title: '여름 쿨톤',
-    description: '부드럽고 밝은 파스텔 컬러가 어울리는 여름 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
-    characteristics: [
-      '피부톤이 붉은빛 또는 푸른빛이 도는 핑크베이지',
-      '눈동자 색이 부드러운 갈색이나 회갈색',
-      '머리카락 색이 재색 또는 쿨한 느낌의 갈색'
-    ],
-    recommendedColors: ['#7A9CC6', '#E8C6C6', '#D2E8E8', '#C2C2D1', '#AEC9C9', '#BDABBE'],
-    avoidColors: ['#FF7518', '#FFA500', '#A0522D', '#F0E68C', '#CD853F']
-  },
-  'fall-warm': {
-    title: '가을 웜톤',
-    description: '깊고 중후한 컬러가 어울리는 가을 웜톤입니다. 노란빛이 도는 깊은 색조가 잘 어울립니다.',
-    characteristics: [
-      '피부톤이 황금빛이 도는 따뜻한 베이지색',
-      '눈동자 색이 짙은 갈색이나 검은색',
-      '머리카락 색이 진한 밤색, 적갈색 또는 카키색'
-    ],
-    recommendedColors: ['#825C06', '#987D51', '#814E18', '#6F5946', '#BE8A4A', '#947A45'],
-    avoidColors: ['#FF80AB', '#80DEEA', '#B39DDB', '#E6E6FA', '#000000']
-  },
-  'winter-cool': {
-    title: '겨울 쿨톤',
-    description: '선명하고 강한 컬러가 어울리는 겨울 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
-    characteristics: [
-      '피부톤이 푸른빛이 도는 차가운 색감',
-      '눈동자 색이 선명한 검은색이나 짙은 갈색',
-      '머리카락 색이 짙은 갈색이나 검은색'
-    ],
-    recommendedColors: ['#E40046', '#1168D9', '#26648E', '#000000', '#FFFFFF', '#0F52BA'],
-    avoidColors: ['#EEE8AA', '#F0E68C', '#BDB76B', '#FFDAB9', '#F5F5DC']
-  }
-};
+// const colorTypeInfo = {
+//   'spring-warm': {
+//     title: '봄 웜톤',
+//     description: '밝고 선명한 컬러가 어울리는 봄 웜톤입니다. 노란빛이 도는 따뜻한 색조가 잘 어울립니다.',
+//     characteristics: [
+//       '피부톤이 밝고 투명한 아이보리 또는 복숭아빛',
+//       '눈동자 색이 선명하고 밝은 갈색이나 다운브라운',
+//       '머리카락 색이 밝은 갈색이나 노란기가 도는 갈색'
+//     ],
+//     recommendedColors: ['#FF9E2C', '#FFE143', '#FF5C00', '#FFA629', '#FFCA3E', '#FF8674'],
+//     avoidColors: ['#808080', '#000080', '#4B0082', '#6B8E23', '#708090']
+//   },
+//   'summer-cool': {
+//     title: '여름 쿨톤',
+//     description: '부드럽고 밝은 파스텔 컬러가 어울리는 여름 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
+//     characteristics: [
+//       '피부톤이 붉은빛 또는 푸른빛이 도는 핑크베이지',
+//       '눈동자 색이 부드러운 갈색이나 회갈색',
+//       '머리카락 색이 재색 또는 쿨한 느낌의 갈색'
+//     ],
+//     recommendedColors: ['#7A9CC6', '#E8C6C6', '#D2E8E8', '#C2C2D1', '#AEC9C9', '#BDABBE'],
+//     avoidColors: ['#FF7518', '#FFA500', '#A0522D', '#F0E68C', '#CD853F']
+//   },
+//   'fall-warm': {
+//     title: '가을 웜톤',
+//     description: '깊고 중후한 컬러가 어울리는 가을 웜톤입니다. 노란빛이 도는 깊은 색조가 잘 어울립니다.',
+//     characteristics: [
+//       '피부톤이 황금빛이 도는 따뜻한 베이지색',
+//       '눈동자 색이 짙은 갈색이나 검은색',
+//       '머리카락 색이 진한 밤색, 적갈색 또는 카키색'
+//     ],
+//     recommendedColors: ['#825C06', '#987D51', '#814E18', '#6F5946', '#BE8A4A', '#947A45'],
+//     avoidColors: ['#FF80AB', '#80DEEA', '#B39DDB', '#E6E6FA', '#000000']
+//   },
+//   'winter-cool': {
+//     title: '겨울 쿨톤',
+//     description: '선명하고 강한 컬러가 어울리는 겨울 쿨톤입니다. 파란빛이 도는 차가운 색조가 잘 어울립니다.',
+//     characteristics: [
+//       '피부톤이 푸른빛이 도는 차가운 색감',
+//       '눈동자 색이 선명한 검은색이나 짙은 갈색',
+//       '머리카락 색이 짙은 갈색이나 검은색'
+//     ],
+//     recommendedColors: ['#E40046', '#1168D9', '#26648E', '#000000', '#FFFFFF', '#0F52BA'],
+//     avoidColors: ['#EEE8AA', '#F0E68C', '#BDB76B', '#FFDAB9', '#F5F5DC']
+//   }
+// };
 
 const ResultPage = () => {
   const navigate = useNavigate();
   const [resultImage, setResultImage] = useState(null);
   const [resultData, setResultData] = useState(null);
-  const [colorTypeInfo, setColorTypeInfo] = useState(null);
+  // const [colorTypeInfo, setColorTypeInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [shareImageUrl, setShareImageUrl] = useState(null);
@@ -101,18 +101,18 @@ const ResultPage = () => {
         setResultImage(savedImage);
         
         // API 응답 데이터가 있으면 콘솔에 출력 (디버깅용)
-        if (parsedResult.apiResponse) {
-          console.log('API 응답 원본 데이터:', parsedResult.apiResponse);
-        }
+        // if (parsedResult.apiResponse) {
+        //   console.log('API 응답 원본 데이터:', parsedResult.apiResponse);
+        // }
         
-        // 컬러 타입 정보 가져오기 (Mock API 사용)
-        const colorTypesData = await colorAnalysisService.getColorTypesMock({ useCache: true });
+        // // 컬러 타입 정보 가져오기 (Mock API 사용)
+        // const colorTypesData = await colorAnalysisService.getColorTypesMock({ useCache: true });
         
-        if (colorTypesData.success && colorTypesData.data.types) {
-          setColorTypeInfo(colorTypesData.data.types);
-        } else {
-          throw new Error('컬러 타입 정보를 가져오지 못했습니다.');
-        }
+        // if (colorTypesData.success && colorTypesData.data.types) {
+        //   setColorTypeInfo(colorTypesData.data.types);
+        // } else {
+        //   throw new Error('컬러 타입 정보를 가져오지 못했습니다.');
+        // }
       } catch (err) {
         console.error('결과 로딩 중 오류:', err);
         setError(err.message || '결과를 불러오는 중 오류가 발생했습니다.');
@@ -234,7 +234,7 @@ const ResultPage = () => {
   }
   
   // 결과 데이터나 컬러 타입 정보가 없는 경우
-  if (!resultData || !colorTypeInfo || !colorTypeInfo[resultData.colorType]) {
+  if (!resultData /* || !colorTypeInfo || !colorTypeInfo[resultData.colorType] */) {
     return (
       <div className="text-center py-20">
         <div className="bg-black/40 backdrop-blur-md border border-yellow-500/50 text-yellow-400 px-8 py-6 rounded-xl mb-8" role="alert">
@@ -253,7 +253,7 @@ const ResultPage = () => {
   
   // 결과 정보 추출
   // 대표 톤 이름: colorType(기존) 또는 season(신규)
-  const colorType = resultData.colorType || resultData.season;
+  const colorType = resultData.apiResponse.season || resultData.season;
   // 신뢰도: confidence(기존) 또는 probabilities에서 해당 톤의 확률(신규)
   const confidence = resultData.confidence;
   const reason = resultData.reason || resultData.apiResponse.reason;
@@ -335,12 +335,12 @@ const ResultPage = () => {
             <div className="mb-8 mt-12">
               <div className="flex items-center justify-between mb-2">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">분석 신뢰도</h3>
-                <span className="text-sm font-medium text-primary">{confidence}</span>
+                <span className="text-sm font-medium text-primary">{confidence}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div 
                   className="bg-primary h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${confidence}` }}
+                  style={{ width: `${confidence}%` }}
                 ></div>
               </div>
             </div>
