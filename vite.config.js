@@ -22,12 +22,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    proxy: {
-      '/analyze-image': {
-        target: 'http://223.195.111.30:5055/api',
-        changeOrigin: true,
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     '/analyze-image': {
+  //       target: 'http://223.195.111.30:5055/api',
+  //       changeOrigin: true,
+  //     },
+  //   },
+  // },
 })
