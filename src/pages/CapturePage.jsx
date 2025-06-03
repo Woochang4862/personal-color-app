@@ -59,8 +59,8 @@ const CapturePage = () => {
     try {
       setError(null);
       
-      // analyzeImageMock 함수를 사용하여 분석 요청 (이제 실제 API 호출을 구현함)
-      const result = await colorAnalysisService.analyzeImageMock(imageToAnalyze);
+      // analyzeImageDirect 함수를 사용하여 OpenAI API 직접 호출
+      const result = await colorAnalysisService.analyzeImageDirect(imageToAnalyze);
       
       if (result.success) {
         // 결과 저장 및 결과 페이지로 이동
