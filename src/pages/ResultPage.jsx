@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import colorAnalysisService from '../services/colorAnalysisService';
+import touchDesignerService from '../services/touchDesignerService';
 import useApiStatus from '../hooks/useApiStatus';
 import html2canvas from 'html2canvas';
 
@@ -60,6 +61,7 @@ const ResultPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [shareImageUrl, setShareImageUrl] = useState(null);
+  const [touchDesignerConnected, setTouchDesignerConnected] = useState(false);
   
   // 결과 캡처를 위한 ref
   const resultCardRef = useRef(null);
@@ -67,12 +69,52 @@ const ResultPage = () => {
   // 컬러타입 정보 로딩 상태
   const isLoadingColorTypes = useApiStatus('getColorTypes');
   
-  // 스페이스바 키 이벤트 처리 - 홈 화면으로 이동
+  // TouchDesigner 연결 상태 확인
+  useEffect(() => {
+    const checkTouchDesignerConnection = async () => {
+      const connected = await touchDesignerService.checkConnection();
+      setTouchDesignerConnected(connected);
+    };
+    
+    checkTouchDesignerConnection();
+    // 5초마다 연결 상태 확인
+    const interval = setInterval(checkTouchDesignerConnection, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // TouchDesigner로 데이터 전송 함수
+  const sendToTouchDesigner = async () => {
+    if (!resultData) {
+      alert('전송할 결과 데이터가 없습니다.');
+      return;
+    }
+    
+    try {
+      const result = await touchDesignerService.sendPersonalColorData(resultData);
+      
+      if (result.success) {
+        alert('TouchDesigner로 데이터가 성공적으로 전송되었습니다!');
+        // 전송 완료 트리거 신호 보내기
+        await touchDesignerService.sendTrigger('result_received');
+      } else {
+        alert(`TouchDesigner 전송 실패: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('TouchDesigner 전송 중 오류:', error);
+      alert('TouchDesigner 전송 중 오류가 발생했습니다.');
+    }
+  };
+  
+  // 키보드 이벤트 처리 - 스페이스바: 홈, T키: TouchDesigner 전송
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space') {
         e.preventDefault(); // 기본 스크롤 동작 방지
         navigate('/');
+      } else if (e.code === 'KeyT' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        sendToTouchDesigner();
       }
     };
 
@@ -80,7 +122,17 @@ const ResultPage = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigate]);
+  }, [navigate, resultData]);
+  
+  // 결과 로드 시 자동으로 TouchDesigner에 전송 (옵션)
+  useEffect(() => {
+    if (resultData && touchDesignerConnected) {
+      // 결과 로드 후 2초 뒤 자동 전송 (선택사항)
+      // setTimeout(() => {
+      //   sendToTouchDesigner();
+      // }, 2000);
+    }
+  }, [resultData, touchDesignerConnected]);
   
   // 결과 및 컬러 타입 정보 로드
   useEffect(() => {
@@ -390,6 +442,30 @@ const ResultPage = () => {
 
           {/* 버튼 그룹 */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            {/* TouchDesigner 연결 상태 및 전송 버튼 */}
+            <div className="w-full sm:w-auto flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`w-3 h-3 rounded-full ${touchDesignerConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className={touchDesignerConnected ? 'text-green-600' : 'text-red-600'}>
+                  TouchDesigner {touchDesignerConnected ? '연결됨' : '연결 안됨'}
+                </span>
+              </div>
+              <button
+                onClick={sendToTouchDesigner}
+                disabled={!touchDesignerConnected}
+                className={`w-full sm:w-auto px-8 py-3 rounded-full font-semibold transition-colors flex items-center justify-center ${
+                  touchDesignerConnected 
+                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+                TouchDesigner로 전송 (T)
+              </button>
+            </div>
+
             <button
               onClick={downloadResult}
               className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
@@ -418,9 +494,10 @@ const ResultPage = () => {
               홈으로 돌아가기
             </Link>
           </div>
-          <p className="mt-4 text-sm text-gray-500 text-center">
-            스페이스바를 눌러 홈으로 돌아갈 수 있습니다
-          </p>
+          <div className="mt-4 text-sm text-gray-500 text-center space-y-1">
+            <p>스페이스바: 홈으로 돌아가기</p>
+            <p>T키: TouchDesigner로 데이터 전송</p>
+          </div>
         </div>
       )}
     </div>
