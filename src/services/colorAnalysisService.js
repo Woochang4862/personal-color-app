@@ -64,6 +64,25 @@ feature는 **해당 퍼스널 컬러를 가진 사람들에게 자주 보이는 
 }
 `;
 
+const COORDI_PROMPT = `
+너는 퍼스널컬러에 맞춘 스타일링을 추천해주는 패션 스타일리스트야.
+사용자의 [현재 착장]과 [퍼스널 컬러]를 고려해서 스타일 키워드 출력 형식에 맞춰 설명.
+설명할 때 말투는 친절하게.
+
+!!주의사항!! 블랙이나 화이트 무채색 아이템은 추천 금지
+
+[출력 형식 - JSON, 한국어]
+RGB는 16진수 HEX 코드 (#RRGGBB)로 표기.
+
+{
+  "style_keywords": ["#청량한", "#내추럴", "#미니멀"],
+  "recommend_items": [
+    {"item": "연청 데님 자켓", "description": "맑은 피부톤을 살려주는 밝은 데님은 봄 웜톤에게 잘 어울려요.", "rgb": "#ADD8E6"},
+    {"item": "라이트 옐로우 린넨 셔츠", "description": "가볍고 밝은 컬러감으로 생기 있는 인상을 더할 수 있어요.", "rgb": "#FFFFE0"}
+  ],
+}
+`;
+
 /**
  * 이미지를 Base64 문자열로 변환하는 함수
  * @param {File} file - 변환할 이미지 파일
@@ -138,7 +157,30 @@ async function analyzeImageWithOpenAI(imageData) {
     const analysisResult = JSON.parse(result.choices[0].message.content);
     logger.info('OpenAI API 분석 완료', analysisResult);
 
-    return analysisResult;
+    const responseStyle = await fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0,
+        messages: [
+          { role: "system", content: COORDI_PROMPT },
+          {
+            role: "user",
+            content: `[퍼스널컬러] :  ${personalColorResult.season}, [사용자의 복장 정보]  /${styleTxt}`
+          }
+        ],
+        response_format: { type: "json_object" }
+      })
+    });
+
+    return {
+      colorResult:analysisResult,
+      styleResult:responseStyle
+    };
   } catch (error) {
     logger.error('OpenAI API 호출 중 오류:', error);
     throw error;
@@ -627,7 +669,7 @@ const colorAnalysisService = {
       const apiResult = await analyzeImageWithOpenAI(base64ImageData);
       
       // 결과를 내부 형식으로 변환
-      const {season, probabilities, reason} = apiResult;
+      const {colorResult : {season, probabilities, reason}, styleResult : {style_keywords, recommend_items, }} = apiResult;
       
       // 계절을 영어로 매핑
       const seasonMapping = {
