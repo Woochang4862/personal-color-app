@@ -19,7 +19,7 @@ export function sendOSCToTouchDesigner(result, selectedColor = null, selectedPai
 
   console.log(`📡 Preparing OSC message for TouchDesigner`);
   console.log(`Season: ${season} → Numeric: ${numericValue}`);
-  console.log(`Selected Color Index: ${selectedColor}`);
+  console.log(`Selected Color: ${selectedColor}`);
   console.log(`Selected Paint:`, selectedPaint);
 
   // TouchDesigner로 HTTP POST 요청을 통해 OSC 데이터 전송

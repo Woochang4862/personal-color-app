@@ -12,7 +12,7 @@ const MemoryPage = () => {
   const [hoveredImage, setHoveredImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [outfitDescription, setOutfitDescription] = useState('');
-
+  const placeholder = "흰 셔츠, 베이지색 바지, 귀여운 키링이 달린 배낭";
   // 페이지 로드 시 스크롤을 상단으로 이동
   useEffect(() => {
     const mainElement = document.getElementsByTagName("main")[0];
@@ -64,10 +64,11 @@ const MemoryPage = () => {
     e.preventDefault();
     if (outfitDescription.trim()) {
       // 선택된 계절과 옷차림 설명을 저장하고 로딩 페이지로 이동
-      sessionStorage.setItem('selectedImage', selectedImage);
-      sessionStorage.setItem('outfitDescription', outfitDescription.trim());
-      navigate('/capture');
+      setOutfitDescription(placeholder);
     }
+    sessionStorage.setItem('selectedImage', selectedImage);
+    sessionStorage.setItem('outfitDescription', outfitDescription.trim());
+    navigate('/capture');
   };
 
   const handleKeyPress = (e) => {
@@ -98,7 +99,7 @@ const MemoryPage = () => {
               value={outfitDescription}
               onChange={(e) => setOutfitDescription(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="흰 셔츠, 베이지색 바지, 귀여운 키링이 달린 배낭"
+              placeholder={placeholder}
               className="w-full max-w-2xl px-6 py-4 text-lg text-gray-700 bg-white rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
               autoFocus
             />

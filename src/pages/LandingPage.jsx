@@ -97,6 +97,10 @@ const LandingPage = () => {
             to="/memory"
             className="bg-[#4B61E6] rounded-2xl py-8 px-6 w-full text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 block"
             aria-label="잘 모르겠어요. 기억이 안 나요."
+            onClick={() => {
+              // 메모리 페이지로 이동하기 전에 세션 스토리지 초기화
+              sessionStorage.clear();
+            }}
           >
             <span className="text-white text-2xl font-semibold">잘 모르겠어요. 기억이 안 나요. <span className="ml-1">🤔</span></span>
           </Link>
