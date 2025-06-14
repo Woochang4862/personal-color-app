@@ -55,11 +55,9 @@ const CapturePage = () => {
   }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-[#343434] p-6 justify-center items-center">
-      <div className="max-w-6xl mx-auto">
-
-        {/* Error Message */}
-        {error && (
+    <div className="h-full min-h-screen bg-[#343434] p-6 flex justify-center items-center">
+      {/* Error Message */}
+      {error && (
           <div className="mb-8 max-w-2xl mx-auto">
             <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-r-xl shadow-sm">
               <div className="flex items-center">
@@ -152,7 +150,6 @@ const CapturePage = () => {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 };
