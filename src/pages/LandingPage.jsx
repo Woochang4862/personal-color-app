@@ -15,11 +15,6 @@ const LandingPage = () => {
   return (
     <div
       className="w-full scrollbar-hide"
-      onClick={() => {
-        // scroll to next section
-        const nextSection = document.getElementById("section2");
-        nextSection.scrollIntoView({ behavior: "smooth" });
-      }}
     >
       <section className="h-screen w-full flex items-center justify-center snap-start">
         <div className="text-center max-w-4xl mx-auto px-6 h-screen w-full flex flex-col justify-between items-center py-8">
