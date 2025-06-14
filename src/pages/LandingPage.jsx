@@ -28,7 +28,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="w-full"
+    <div className="w-full scrollbar-hide"
     onClick={() => {
       // scroll to next section
       const nextSection = document.getElementById("section2");
