@@ -2,12 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import loading_cube from '../assets/loading_cube.gif';
 import colorAnalysisService from '../services/colorAnalysisService';
+import { sendOSCToTouchDesigner } from '../sendOSCToTouchDesigner';
 
 const LoadingPage = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState('이미지를 불러오는 중...');
-
   useEffect(() => {
+    const selectedSeason = sessionStorage.getItem('selectedSeason');
+    if (selectedSeason) {
+      setStatus('계절의 추억을 불러오는 중...');
+      setTimeout(async () => {
+        console.log('🚀 Sending OSC data to TouchDesigner...');
+        const oscResult = await sendOSCToTouchDesigner({
+          apiResponse: {
+            colorResult: {
+              season: selectedSeason
+            }
+          }
+        }, Math.floor(Math.random() * 4), Math.floor(Math.random() * 4));
+        console.log(oscResult);
+        navigate('/');
+      }, 2000);
+      return;
+    }
+    // 기존 분석 로직 (이미지 기반)
     const performAnalysis = async () => {
       try {
         // 세션 스토리지에서 이미지와 정보 가져오기
@@ -70,7 +88,7 @@ const LoadingPage = () => {
           alt="로딩 중" 
           className="w-40 h-40 mb-8"
         />
-        <p className="text-gray-300 text-lg">당신의 그 [날]을 가져올게요. <br/>잠시 기다려주세요.</p>
+        <p className="text-gray-300 text-lg">{status}<br/>잠시 기다려주세요.</p>
       </div>
     </div>
   );

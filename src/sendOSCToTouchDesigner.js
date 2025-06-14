@@ -1,8 +1,12 @@
 // sendOSCToTouchDesigner.js
 // 브라우저 환경에서 TouchDesigner로 OSC 메시지를 전송하는 함수
 
-export function sendOSCToTouchDesigner(result, selectedColorIndex = null, selectedPaint = null) {
+export function sendOSCToTouchDesigner(result, selectedColor = null, selectedPaint = null) {
   const seasonToNumber = {
+    '봄': 1,
+    '여름': 2,
+    '가을': 3,
+    '겨울': 4,
     '봄 웜톤': 1,
     '여름 쿨톤': 2,
     '가을 웜톤': 3,
@@ -15,14 +19,14 @@ export function sendOSCToTouchDesigner(result, selectedColorIndex = null, select
 
   console.log(`📡 Preparing OSC message for TouchDesigner`);
   console.log(`Season: ${season} → Numeric: ${numericValue}`);
-  console.log(`Selected Color Index: ${selectedColorIndex}`);
+  console.log(`Selected Color Index: ${selectedColor}`);
   console.log(`Selected Paint:`, selectedPaint);
 
   // TouchDesigner로 HTTP POST 요청을 통해 OSC 데이터 전송
   const oscData = {
       season: numericValue,
       seasonName: season,
-      selectedColorIndex: selectedColorIndex,
+      selectedColor: selectedColor,
       selectedPaint: selectedPaint,
   };
 
@@ -53,27 +57,4 @@ async function sendOSCViaHTTP(oscData) {
   } catch (error) {
     // console.error('❌ Failed to send OSC data to TouchDesigner:', error);
   }
-}
-
-// 단순한 OSC 메시지 전송 (기존 방식과 호환)
-export function sendSimpleOSC(season, selectedColorIndex) {
-  const seasonToNumber = {
-    '봄': 1,
-    '봄 웜톤': 1,
-    '여름': 2,
-    '여름 쿨톤': 2,
-    '가을': 3,
-    '가을 웜톤': 3,
-    '겨울': 4,
-    '겨울 쿨톤': 4
-  };
-
-  const numericValue = seasonToNumber[season] || seasonToNumber[season.split(' ')[0]] || 1;
-  
-  const oscData = {
-    address: '/personalColor',
-    args: [numericValue, selectedColorIndex || 0]
-  };
-
-  return sendOSCViaHTTP(oscData);
 }

@@ -21,6 +21,12 @@ const LandingPage = () => {
     };
   }, [navigate]);
 
+  // 계절 버튼 클릭 핸들러
+  const handleSeasonSelect = (season) => {
+    sessionStorage.setItem('selectedSeason', season);
+    navigate('/loading');
+  };
+
   return (
     <div className="w-full">
       <section className="h-screen w-full flex items-center justify-center snap-start">
@@ -74,16 +80,16 @@ const LandingPage = () => {
         {/* 계절 선택 버튼 및 안내 메시지: 수직 배치 */}
         <div className="flex flex-col items-center w-full max-w-xl gap-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black">
+            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black" onClick={() => handleSeasonSelect('봄')}>
               봄<span className="ml-1">🌿</span>
             </button>
-            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black">
+            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black" onClick={() => handleSeasonSelect('여름')}>
               여름<span className="ml-1">🏖️</span>
             </button>
-            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black">
+            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black" onClick={() => handleSeasonSelect('가을')}>
               가을<span className="ml-1">🍁</span>
             </button>
-            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black">
+            <button className="bg-white rounded-xl py-6 text-xl shadow hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-black" onClick={() => handleSeasonSelect('겨울')}>
               겨울<span className="ml-1">⛄️</span>
             </button>
           </div>
