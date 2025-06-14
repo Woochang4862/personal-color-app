@@ -52,7 +52,6 @@ async function sendOSCViaHTTP(oscData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept-Control-Allow-Origin': '*',
       },
       mode: 'no-cors',
       body: JSON.stringify(oscData)
@@ -62,10 +61,10 @@ async function sendOSCViaHTTP(oscData) {
       console.log('✅ OSC data sent to TouchDesigner successfully');
       return { success: true, message: 'OSC 데이터가 TouchDesigner로 성공적으로 전송되었습니다.' };
     } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      //throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
   } catch (error) {
-    console.error('❌ Failed to send OSC data to TouchDesigner:', error);
+    // console.error('❌ Failed to send OSC data to TouchDesigner:', error);
   }
 }
 
