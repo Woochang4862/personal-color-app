@@ -3,13 +3,9 @@
 
 export function sendOSCToTouchDesigner(result, selectedColorIndex = null, selectedPaint = null) {
   const seasonToNumber = {
-    '봄': 1,
     '봄 웜톤': 1,
-    '여름': 2,
     '여름 쿨톤': 2,
-    '가을': 3,
     '가을 웜톤': 3,
-    '겨울': 4,
     '겨울 쿨톤': 4
   };
 

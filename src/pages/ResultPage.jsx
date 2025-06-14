@@ -59,7 +59,7 @@ const ResultPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
-  
+  const [selectedColorIndex, setSelectedColorIndex] = useState(null);
   // 결과 캡처를 위한 ref
   const resultCardRef = useRef(null);
   
@@ -201,8 +201,9 @@ const ResultPage = () => {
   };
   
   // 컬러 선택 처리
-  const handleColorSelect = (colorIndex) => {
-    setSelectedColor(colorIndex);
+  const handleColorSelect = (colorCode, index) => {
+    setSelectedColor(colorCode);
+    setSelectedColorIndex(index);
   };
 
   // 확인하기 버튼 처리
@@ -210,7 +211,7 @@ const ResultPage = () => {
     if (selectedColor !== null) {
       try {
         // 선택된 컬러 정보를 저장
-        sessionStorage.setItem('selectedColorIndex', selectedColor.toString());
+        sessionStorage.setItem('selectedColorCode', selectedColor);
         const selectedPaint = sessionStorage.getItem('selectedImage');
         // TouchDesigner로 OSC 데이터 전송
         console.log('🚀 Sending OSC data to TouchDesigner...');
@@ -225,7 +226,7 @@ const ResultPage = () => {
         // }
         
         // 여기서 다음 페이지로 이동하거나 추가 처리 가능
-        scrollTo(0, 0);
+        window.scrollTo(0, 0);
         
       } catch (error) {
         console.error('❌ Error in handleConfirm:', error);
@@ -370,9 +371,9 @@ const ResultPage = () => {
           {[0, 1, 2].map((index) => (
             <button
               key={index}
-              onClick={() => handleColorSelect(index)}
+              onClick={() => handleColorSelect(recommend[index]?.rgb, index)}
               className={`w-24 h-24 rounded-full transition-all duration-300 ${
-                selectedColor === index 
+                selectedColorIndex === index 
                   ? 'ring-4 ring-blue-500 ring-offset-4 ring-offset-gray-800' 
                   : 'hover:scale-110'
               }`}
