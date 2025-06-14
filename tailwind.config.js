@@ -31,7 +31,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Pretendard', 'Inter', 'sans-serif'],
+        sans: ['Paperlogy', 'Pretendard'],
       },
     },
   },
