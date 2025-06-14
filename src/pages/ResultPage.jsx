@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import colorAnalysisService from '../services/colorAnalysisService';
-import touchDesignerService from '../services/touchDesignerService';
-import useApiStatus from '../hooks/useApiStatus';
 import html2canvas from 'html2canvas';
+import { sendOSCToTouchDesigner } from '../sendOSCToTouchDesigner';
 
 // 퍼스널 컬러 타입 정의
 // const colorTypeInfo = {
@@ -60,61 +58,17 @@ const ResultPage = () => {
   // const [colorTypeInfo, setColorTypeInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [shareImageUrl, setShareImageUrl] = useState(null);
-  const [touchDesignerConnected, setTouchDesignerConnected] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(null);
   
   // 결과 캡처를 위한 ref
   const resultCardRef = useRef(null);
   
-  // 컬러타입 정보 로딩 상태
-  const isLoadingColorTypes = useApiStatus('getColorTypes');
-  
-  // TouchDesigner 연결 상태 확인
-  useEffect(() => {
-    const checkTouchDesignerConnection = async () => {
-      const connected = await touchDesignerService.checkConnection();
-      setTouchDesignerConnected(connected);
-    };
-    
-    checkTouchDesignerConnection();
-    // 5초마다 연결 상태 확인
-    const interval = setInterval(checkTouchDesignerConnection, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // TouchDesigner로 데이터 전송 함수
-  const sendToTouchDesigner = async () => {
-    if (!resultData) {
-      alert('전송할 결과 데이터가 없습니다.');
-      return;
-    }
-    
-    try {
-      const result = await touchDesignerService.sendPersonalColorData(resultData);
-      
-      if (result.success) {
-        alert('TouchDesigner로 데이터가 성공적으로 전송되었습니다!');
-        // 전송 완료 트리거 신호 보내기
-        await touchDesignerService.sendTrigger('result_received');
-      } else {
-        alert(`TouchDesigner 전송 실패: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('TouchDesigner 전송 중 오류:', error);
-      alert('TouchDesigner 전송 중 오류가 발생했습니다.');
-    }
-  };
-  
-  // 키보드 이벤트 처리 - 스페이스바: 홈, T키: TouchDesigner 전송
+  // 키보드 이벤트 처리
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space') {
-        e.preventDefault(); // 기본 스크롤 동작 방지
-        navigate('/');
-      } else if (e.code === 'KeyT' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        sendToTouchDesigner();
+        navigate('/');
       }
     };
 
@@ -122,17 +76,7 @@ const ResultPage = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [navigate, resultData]);
-  
-  // 결과 로드 시 자동으로 TouchDesigner에 전송 (옵션)
-  useEffect(() => {
-    if (resultData && touchDesignerConnected) {
-      // 결과 로드 후 2초 뒤 자동 전송 (선택사항)
-      // setTimeout(() => {
-      //   sendToTouchDesigner();
-      // }, 2000);
-    }
-  }, [resultData, touchDesignerConnected]);
+  }, [navigate]);
   
   // 결과 및 컬러 타입 정보 로드
   useEffect(() => {
@@ -201,7 +145,6 @@ const ResultPage = () => {
   const generateResultImage = async () => {
     const imageUrl = await captureResultCard();
     if (imageUrl) {
-      setShareImageUrl(imageUrl);
       return imageUrl;
     }
     return null;
@@ -210,7 +153,7 @@ const ResultPage = () => {
   // 이미지 다운로드 함수
   const downloadResult = async () => {
     // 이미지 URL이 없으면 생성
-    const imageUrl = shareImageUrl || await generateResultImage();
+    const imageUrl = await generateResultImage();
     if (!imageUrl) {
       alert('이미지 생성에 실패했습니다.');
       return;
@@ -228,7 +171,7 @@ const ResultPage = () => {
   // 결과 공유 함수
   const shareResult = async () => {
     // 이미지 URL이 없으면 생성
-    const imageUrl = shareImageUrl || await generateResultImage();
+    const imageUrl = await generateResultImage();
     if (!imageUrl) {
       alert('이미지 생성에 실패했습니다.');
       return;
@@ -257,12 +200,50 @@ const ResultPage = () => {
     }
   };
   
+  // 컬러 선택 처리
+  const handleColorSelect = (colorIndex) => {
+    setSelectedColor(colorIndex);
+  };
+
+  // 확인하기 버튼 처리
+  const handleConfirm = async () => {
+    if (selectedColor !== null) {
+      try {
+        // 선택된 컬러 정보를 저장
+        sessionStorage.setItem('selectedColorIndex', selectedColor.toString());
+        
+        // TouchDesigner로 OSC 데이터 전송
+        console.log('🚀 Sending OSC data to TouchDesigner...');
+        const oscResult = await sendOSCToTouchDesigner(resultData, selectedColor);
+        
+        if (oscResult.success) {
+          alert(`컬러가 선택되었습니다!\n${oscResult.message}`);
+          console.log('✅ OSC data sent successfully');
+        } else {
+          alert(`컬러가 선택되었지만 TouchDesigner 전송에 실패했습니다.\n${oscResult.error || '알 수 없는 오류'}`);
+          console.error('❌ OSC transmission failed:', oscResult.error);
+        }
+        
+        // 여기서 다음 페이지로 이동하거나 추가 처리 가능
+        // navigate('/next-page');
+        
+      } catch (error) {
+        console.error('❌ Error in handleConfirm:', error);
+        alert('컬러가 선택되었지만 처리 중 오류가 발생했습니다.');
+      }
+    } else {
+      alert('컬러를 선택해주세요.');
+    }
+  };
+  
   // 로딩 중 표시
-  if (isLoading || isLoadingColorTypes) {
+  if (isLoading) {
     return (
-      <div className="text-center py-20">
-        <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mb-8"></div>
-        <p className="text-white text-xl">결과를 불러오는 중입니다...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mb-8"></div>
+          <p className="text-white text-xl">결과를 불러오는 중입니다...</p>
+        </div>
       </div>
     );
   }
@@ -315,191 +296,117 @@ const ResultPage = () => {
   const avoid = resultData.avoid || resultData.apiResponse.avoid;
   
   return (
-    <div className="max-w-9xl px-4 py-8">
-      {error ? (
-        <div className="text-center">
-          <div className="mb-8 p-5 bg-red-50 border border-red-200 text-red-600 rounded-xl">
-            <p>{error}</p>
+    <div className="px-20 w-full overflow-y-auto snap-y snap-mandatory" style={{ height: '100vh' }}>
+      {/* 첫 번째 섹션: 진단 결과 */}
+      <section className="h-screen w-full flex snap-start" ref={resultCardRef}>
+        {/* 왼쪽 영역 */}
+        <div className="w-1/2 flex flex-col justify-center items-center">
+          <h1 className="text-white text-[40px] font-normal mb-8 tracking-wider">
+            당신의 그 [날]은 <span className="font-bold text-[50px]">{colorType.split(' ')[0]}</span> 입니다.
+          </h1>
+          
+          {/* 이미지 영역 - 파란색 테두리 */}
+          <div className="w-96 h-96 border-2 border-blue-500 rounded-[44px] overflow-hidden">
+            <img
+              src={resultImage}
+              alt="분석된 이미지"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <Link
-            to="/capture"
-            className="inline-block btn-gradient font-semibold py-4 px-10 rounded-full text-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl"
-          >
-            다시 촬영하기
-          </Link>
+          
+          <p className="text-white text-lg text-center mt-16 leading-relaxed">
+            당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.
+          </p>
         </div>
-      ) : isLoading ? (
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">결과를 불러오는 중입니다...</p>
-        </div>
-      ) : (
-        <div>
-          {/* 결과 카드 */}
-          <div ref={resultCardRef} className="bg-white rounded-2xl border border-gray-200 shadow-lg p-8 mb-8">
-            <div className="text-left mb-8">
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                당신의 퍼스널 컬러는
-                
-                <span className="text-gradient"> {colorType}</span>
-                입니다
-              </h2>
-              
-              <p className="text-gray-600 text-lg text-left mb-4">
-                {description}
+        
+        {/* 오른쪽 영역 */}
+        <div className="w-1/2 flex flex-col justify-center">
+          {/* 진단 결과 */}
+          <div className="mb-12">
+            <h2 className="text-white text-[22px] font-bold mb-3 leading-relaxed">
+              [진단 결과]
+            </h2>
+            <p className="text-white text-[18px] leading-relaxed ps-4">
+              {description}
+            </p>
+          </div>
+          
+          {/* 코디 제안 */}
+          <div>
+            <h2 className="text-white text-[22px] font-bold mb-3 leading-relaxed">
+              [코디 제안]
+            </h2>
+            <div className="text-white text-[18px] leading-relaxed ps-4">
+              <p className="mb-4">
+                이너로: 크림 베이지, 라이트 옐로우, 피치빛 톤의 티셔츠<br />
+                → 파란 가디건과 부드럽게 어우러지면서 봄 특유의 따뜻한 무드를 살릴 수 있어요!
               </p>
-              
-              <p className="text-gray-600 text-lg text-left">
-                {reason}
+              <p className="mb-4">
+                액세서리: 골드 귀걸이, 밝은 코랄 립<br />
+                → 봄 웜톤에게 잘 어울리는 따뜻한 느낌의 포인트로 얼굴이 더 생기 있어 보여요.
               </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* 분석된 이미지 */}
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">분석된 이미지</h3>
-                <div className="aspect-square rounded-xl overflow-hidden border border-gray-200">
-                  <img
-                    src={resultImage}
-                    alt="분석된 이미지"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* 특징 */}
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">당신의 특징</h3>
-                <ul className="space-y-3">
-                  {feature.map((char, index) => (
-                    <li key={index} className="flex items-start">
-                      <svg className="h-6 w-6 text-primary flex-shrink-0 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      <span className="text-gray-600">{char}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* 신뢰도 바 */}
-            <div className="mb-8 mt-12">
-              <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">분석 신뢰도</h3>
-                <span className="text-sm font-medium text-primary">{confidence}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-primary h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${confidence}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* 추천 컬러 팔레트 */}
-            <div className="mt-12">
-              <h3 className="text-xl font-semibold text-gray-800">추천 컬러 팔레트</h3>
-              <p className="mt-2 text-gray-600 text-sm text-left mb-4">
-                이 컬러들을 활용하여 의상, 메이크업, 액세서리를 선택해보세요
+              <p>
+                신발: 아이보리 로퍼나 연한 카멜색 플랫 슈즈<br />
+                → 흰 바지와 자연스럽게 연결되면서 전체적으로 부드럽고 세련된 인상을 줄 수 있어요.
               </p>
-              <div className="grid grid-cols-6 gap-4">
-                {recommend.map((color, index) => (
-                  <div 
-                    key={index} 
-                    className="aspect-square rounded-lg shadow-md relative group"
-                    style={{ backgroundColor: color.rgb }}
-                  >
-                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg transition-opacity duration-200 whitespace-nowrap">
-                      {color.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 피해야 할 컬러 */}
-            <div className="mt-12">
-              <h3 className="text-xl font-semibold text-gray-800">피해야 할 컬러</h3>
-              <p className="mt-2 text-gray-600 text-sm text-left mb-4">
-                이 컬러들은 가급적 피하는 것이 좋습니다
-              </p>
-              <div className="grid grid-cols-6 gap-4">
-                {avoid.map((color, index) => (
-                  <div 
-                    key={index} 
-                    className="aspect-square rounded-lg shadow-md relative group"
-                    style={{ backgroundColor: color.rgb }}
-                  >
-                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg transition-opacity duration-200 whitespace-nowrap">
-                      {color.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* 버튼 그룹 */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            {/* TouchDesigner 연결 상태 및 전송 버튼 */}
-            <div className="w-full sm:w-auto flex flex-col items-center gap-2">
-              <div className="flex items-center gap-2 text-sm">
-                <div className={`w-3 h-3 rounded-full ${touchDesignerConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className={touchDesignerConnected ? 'text-green-600' : 'text-red-600'}>
-                  TouchDesigner {touchDesignerConnected ? '연결됨' : '연결 안됨'}
-                </span>
-              </div>
-              <button
-                onClick={sendToTouchDesigner}
-                disabled={!touchDesignerConnected}
-                className={`w-full sm:w-auto px-8 py-3 rounded-full font-semibold transition-colors flex items-center justify-center ${
-                  touchDesignerConnected 
-                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
-                TouchDesigner로 전송 (T)
-              </button>
-            </div>
-
+      {/* 두 번째 섹션: 컬러 선택 */}
+      <section className="h-screen w-full flex flex-col justify-center items-center snap-start">
+        <h2 className="text-white text-3xl font-normal mb-8 text-center">
+          당신에게는 이런 컬러가 어울릴 것 같아요
+        </h2>
+        
+        {/* 컬러 선택 영역 */}
+        <div className="flex gap-20 mb-16">
+          {[0, 1, 2].map((index) => (
             <button
-              onClick={downloadResult}
-              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-              결과 저장하기
-            </button>
-            <button
-              onClick={shareResult}
-              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-              </svg>
-              결과 공유하기
-            </button>
-            <Link
-              to="/"
-              className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-              </svg>
-              홈으로 돌아가기
-            </Link>
-          </div>
-          <div className="mt-4 text-sm text-gray-500 text-center space-y-1">
-            <p>스페이스바: 홈으로 돌아가기</p>
-            <p>T키: TouchDesigner로 데이터 전송</p>
-          </div>
+              key={index}
+              onClick={() => handleColorSelect(index)}
+              className={`w-24 h-24 rounded-full transition-all duration-300 ${
+                selectedColor === index 
+                  ? 'ring-4 ring-blue-500 ring-offset-4 ring-offset-gray-800' 
+                  : 'hover:scale-110'
+              }`}
+              style={{ 
+                backgroundColor: recommend[index]?.rgb || '#D9D9D9'
+              }}
+            />
+          ))}
         </div>
-      )}
+        
+        <p className="text-[#A0A0A0] text-[18px] mb-[200px] text-center">
+          한가지 컬러를 선택해주세요
+        </p>
+        
+        <p className="text-white text-xl mb-8 text-center">
+          나비🦋 가 되어 그 [날]로 들어가볼까요?
+        </p>
+        
+        {/* 확인하기 버튼 */}
+        <button
+          onClick={handleConfirm}
+          disabled={selectedColor === null}
+          className={`px-10 py-2 rounded-full text-white text-xl font-bold transition-all duration-300 ${
+            selectedColor !== null
+              ? 'bg-[#3A4EFF] hover:bg-[#596aff] hover:shadow-lg'
+              : 'bg-gray-500 cursor-not-allowed opacity-50'
+          }`}
+        >
+          확인하기
+        </button>
+
+        {/* 홈으로 돌아가기 버튼 (하단 우측) */}
+        <Link
+          to="/"
+          className="absolute bottom-8 right-8 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors text-sm"
+        >
+          홈으로 돌아가기 (Space)
+        </Link>
+      </section>
     </div>
   );
 };

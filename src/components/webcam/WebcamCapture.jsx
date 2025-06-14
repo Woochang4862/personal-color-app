@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 
-const WebcamCapture = ({ onImageCapture, disabled = false }) => {
+const WebcamCapture = ({ onImageCapture, onRetake, disabled = false }) => {
   const webcamRef = useRef(null);
+  const navigate = useNavigate();
   const [imgSrc, setImgSrc] = useState(null);
   const [error, setError] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -26,6 +28,10 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
     if (!disabled) {
       setImgSrc(null);
       setIsCameraActive(true);
+      // 부모 컴포넌트의 상태도 초기화
+      if (onRetake && typeof onRetake === 'function') {
+        onRetake();
+      }
     }
   };
 
@@ -51,9 +57,11 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
     };
   }, [capture, isCameraActive, disabled]);
 
+
+
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="backdrop-blur-md rounded-xl overflow-hidden border border-white/10">
+      <div className="rounded-xl overflow-hidden">
         {error ? (
           <div className="p-6 text-red-400 bg-black/40 backdrop-blur-md rounded-lg">
             <p>{error}</p>
@@ -64,35 +72,41 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
               <img 
                 src={imgSrc} 
                 alt="촬영된 사진" 
-                className="w-full rounded-md"
+                className="w-full rounded-3xl"
               />
-              {disabled && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-md backdrop-blur-sm">
-                  <div className="animate-pulse bg-black/70 px-6 py-4 rounded-full">
-                    <p className="text-white font-medium">처리 중...</p>
-                  </div>
-                </div>
-              )}
             </div>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 flex justify-between gap-8 px-8">
               <button
                 onClick={retake}
                 disabled={disabled}
-                className={`px-6 py-3 bg-black/40 text-white rounded-full hover:bg-black/60 transition-all duration-300 transform hover:-translate-y-1 ${
+                className={`flex-1 bg-gray-500 rounded-2xl py-3 px-6 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${
+                  disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'
+                }`}
+              >
+                <span className="text-white text-base font-medium">다시 촬영하기</span>
+              </button>
+              <button
+                onClick={() => {
+                  // 촬영된 이미지를 세션 스토리지에 저장
+                  if (imgSrc) {
+                    sessionStorage.setItem('capturedImage', imgSrc);
+                    sessionStorage.setItem('imageSource', 'webcam');
+                  }
+                  // 로딩 페이지로 이동
+                  navigate('/loading');
+                }}
+                disabled={disabled}
+                className={`flex-1 bg-[#4B61E6] rounded-2xl py-3 px-6 text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${
                   disabled ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                다시 촬영하기
+                <span className="text-white text-base font-medium">다음</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="p-6">
             <div className="relative">
-              {/* 얼굴 위치 가이드 오버레이 */}
-              <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-                <div className="w-52 h-52 border-3 border-dashed border-primary rounded-full opacity-70"></div>
-              </div>
               
               {/* 웹캠 화면 - mirrored 속성을 false로 설정하여 좌우반전 제거 */}
               {isCameraActive && (
@@ -102,34 +116,25 @@ const WebcamCapture = ({ onImageCapture, disabled = false }) => {
                   screenshotFormat="image/jpeg"
                   videoConstraints={{
                     width: 480,
-                    height: 480,
+                    height: 560,
                     facingMode: "user",
                   }}
                   mirrored={true}
                   onUserMediaError={handleUserMediaError}
-                  className="w-full rounded-lg"
+                  className="w-full rounded-3xl"
                 />
-              )}
-              
-              {/* 로딩 오버레이 */}
-              {disabled && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-md backdrop-blur-sm">
-                  <div className="animate-pulse bg-black/70 px-6 py-4 rounded-full">
-                    <p className="text-white font-medium">처리 중...</p>
-                  </div>
-                </div>
               )}
             </div>
             
-            <div className="mt-8 flex justify-center">
+            <div className="mt-6 flex justify-center">
               <button
                 onClick={capture}
                 disabled={disabled}
-                className={`px-8 py-3 bg-primary text-white rounded-full hover:bg-primary-light transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl ${
+                className={`bg-[#4B61E6] rounded-2xl py-2 px-8 text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 inline-block ${
                   disabled ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                사진 촬영
+                <span className="text-white text-base font-medium">촬영하기</span>
               </button>
             </div>
             <p className="mt-3 text-xs text-gray-500 text-center">

@@ -27,7 +27,7 @@ const MemoryPage = () => {
       src: memoryImage1,
       season: '봄',
       title: '따스한 햇살 아래 피크닉',
-      description: '새싹이 돋아나고 꽃이 피어나는\n따뜻하고 생기 넘치는 계절',
+      description: '하늘은 수채화 물감을 끼얹은 것 같았어요',
       emotion: '설렘과 희망이 가득한'
     },
     {
@@ -63,10 +63,13 @@ const MemoryPage = () => {
   const handleOutfitSubmit = (e) => {
     e.preventDefault();
     if (outfitDescription.trim()) {
-      // 선택된 계절과 옷차림 설명을 저장하고 캡처 페이지로 이동
+      // 선택된 계절과 옷차림 설명을 저장하고 로딩 페이지로 이동
       sessionStorage.setItem('selectedSeason', selectedImage.season);
       sessionStorage.setItem('selectedImageData', JSON.stringify(selectedImage));
       sessionStorage.setItem('outfitDescription', outfitDescription.trim());
+      // 더미 이미지를 설정 (실제로는 사용자가 업로드한 이미지가 있어야 함)
+      sessionStorage.setItem('capturedImage', selectedImage.src);
+      sessionStorage.setItem('imageSource', 'memory');
       navigate('/capture');
     }
   };
@@ -149,37 +152,28 @@ const MemoryPage = () => {
                   <img
                     src={image.src}
                     alt={image.title}
-                    className="w-full h-full object-cover transition-all duration-500 group-hover:brightness-110"
+                    className="w-full h-full object-cover"
                   />
                   
-                  {/* 호버 오버레이 */}
-                  <div className={`absolute inset-0 transition-all duration-500 ${
-                    hoveredImage === index 
-                      ? 'bg-black/30 backdrop-blur-sm' 
-                      : 'bg-transparent'
-                  }`}>
-                    {/* 글래스모피즘 설명 박스 */}
-                    <div className={`absolute inset-x-4 bottom-4 transition-all duration-500 transform ${
+                    {/* 호버 오버레이 */}
+                    <div className={`absolute inset-0 transition-all duration-500 ${
                       hoveredImage === index 
-                        ? 'translate-y-0 opacity-100' 
-                        : 'translate-y-8 opacity-0'
+                        ? 'bg-black/30 backdrop-blur-sm' 
+                        : 'bg-transparent'
                     }`}>
-                      <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 border border-white/30 shadow-xl">
-                        <div className="text-center">
-                          <h3 className="text-2xl font-bold text-white mb-2">
-                            {image.season}
-                          </h3>
-                          <h4 className="text-lg font-semibold text-gray-200 mb-3">
-                            {image.title}
-                          </h4>
-                          <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line mb-2">
-                            {image.description}
-                          </p>
-                          <p className="text-xs text-blue-200 font-medium">
-                            {image.emotion} 기억
-                          </p>
+                      {/* 글래스모피즘 설명 박스 - 항상 블러 효과 유지 */}
+                      <div className={`absolute inset-x-4 bottom-1/2 translate-y-1/2 transition-opacity duration-300 transform backdrop-blur-sm ${
+                        hoveredImage === index 
+                          ? 'opacity-100' 
+                          : 'opacity-0'
+                      }`} style={{transform: 'translateZ(0) translateY(50%)'}}>
+                                                 <div className="bg-white/20 rounded-xl px-2 py-1 border border-white/30 shadow-xl will-change-transform" style={{transform: 'translateZ(0)'}}>
+                          <div className="flex items-center justify-center min-h-[30px]">
+                            <p className="text-sm text-white leading-relaxed whitespace-pre-line text-center" style={{textShadow: '0 0 10px rgba(0, 0, 0, 0.5)'}}>
+                              {image.description}
+                            </p>
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
 
