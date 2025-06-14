@@ -26,8 +26,8 @@ const LoadingPage = () => {
         setStatus('퍼스널 컬러를 분석하는 중...');
 
         // 실제 분석 수행
-        const result = await colorAnalysisService.analyzeImageDirect(capturedImage);
-        
+        const result = await colorAnalysisService.analyzeImageDirect(capturedImage, outfitDescription);
+        console.log(result);
         if (result.success) {
           setStatus('분석이 완료되었습니다!');
           

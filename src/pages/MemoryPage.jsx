@@ -127,7 +127,7 @@ const MemoryPage = () => {
 
   // 기본 이미지 선택 화면
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-7xl mx-auto w-full">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-7xl mx-auto w-full h-full flex items-center justify-center">
         <div className="max-w-7xl mx-auto">
           {/* 헤더 텍스트 */}
           <div className="text-center mb-16">
@@ -188,6 +188,7 @@ const MemoryPage = () => {
               ← 처음으로 돌아가기
             </button>
           </div>
+          
         </div>
     </div>
   );

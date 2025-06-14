@@ -102,7 +102,7 @@ async function fileToBase64(file) {
  * @param {string} imageData - Base64 인코딩된 이미지 데이터 (data URL 형식)
  * @returns {Promise<Object>} 분석 결과 객체
  */
-async function analyzeImageWithOpenAI(imageData) {
+async function analyzeImageWithOpenAI(imageData, styleTxt) {
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API 키가 설정되지 않았습니다. VITE_OPENAI_API_KEY 환경 변수를 확인해주세요.');
   }
@@ -154,8 +154,8 @@ async function analyzeImageWithOpenAI(imageData) {
       throw new Error('OpenAI API 응답 형식이 올바르지 않습니다.');
     }
 
-    const analysisResult = JSON.parse(result.choices[0].message.content);
-    logger.info('OpenAI API 분석 완료', analysisResult);
+    const analysisResultColor = JSON.parse(result.choices[0].message.content);
+    logger.info('OpenAI API 분석 완료', analysisResultColor);
 
     const responseStyle = await fetch(OPENAI_API_URL, {
       method: 'POST',
@@ -170,16 +170,35 @@ async function analyzeImageWithOpenAI(imageData) {
           { role: "system", content: COORDI_PROMPT },
           {
             role: "user",
-            content: `[퍼스널컬러] :  ${personalColorResult.season}, [사용자의 복장 정보]  /${styleTxt}`
+            content: `[퍼스널컬러] :  ${analysisResultColor.season}, [사용자의 복장 정보]  /${styleTxt}`
           }
         ],
         response_format: { type: "json_object" }
       })
     });
 
+    if (!responseStyle.ok) {
+      const errorData = await responseStyle.json().catch(() => ({}));
+      logger.error('OpenAI API 요청 실패', { 
+        status: responseStyle.status, 
+        statusText: responseStyle.statusText,
+        error: errorData
+      });
+      throw new Error(`OpenAI API 오류: ${responseStyle.status} ${responseStyle.statusText}`);
+    }
+
+    const resultStyle = await responseStyle.json();
+    
+    if (!resultStyle.choices || !resultStyle.choices.length || !resultStyle.choices[0].message?.content) {
+      throw new Error('OpenAI API 응답 형식이 올바르지 않습니다.');
+    }
+
+    const analysisResultStyle = JSON.parse(resultStyle.choices[0].message.content);
+    logger.info('OpenAI API 분석 완료', analysisResultStyle);
+
     return {
-      colorResult:analysisResult,
-      styleResult:responseStyle
+      colorResult:analysisResultColor,
+      styleResult:analysisResultStyle
     };
   } catch (error) {
     logger.error('OpenAI API 호출 중 오류:', error);
@@ -641,7 +660,7 @@ const colorAnalysisService = {
    * @param {number} options.maxRetries - 최대 재시도 횟수 (기본값: 2)
    * @returns {Promise<Object>} 분석 결과 객체
    */
-  analyzeImageDirect: async (imageData, options = { maxRetries: 2 }) => {
+  analyzeImageDirect: async (imageData, styleTxt, options = { maxRetries: 2 }) => {
     try {
       // 로딩 상태 설정
       colorAnalysisService.setLoading('analyzeImage', true);
@@ -666,7 +685,7 @@ const colorAnalysisService = {
       }
       
       // OpenAI API 호출
-      const apiResult = await analyzeImageWithOpenAI(base64ImageData);
+      const apiResult = await analyzeImageWithOpenAI(base64ImageData, styleTxt);
       
       // 결과를 내부 형식으로 변환
       const {colorResult : {season, probabilities, reason}, styleResult : {style_keywords, recommend_items, }} = apiResult;
@@ -710,7 +729,9 @@ const colorAnalysisService = {
           confidence,
           imageUrl: base64ImageData,
           description: reason,
-          apiResponse: apiResult
+          apiResponse: apiResult,
+          recommend_items,
+          style_keywords
         }
       };
       

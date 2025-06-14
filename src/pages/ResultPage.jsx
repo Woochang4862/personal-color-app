@@ -286,14 +286,19 @@ const ResultPage = () => {
   
   // 결과 정보 추출
   // 대표 톤 이름: colorType(기존) 또는 season(신규)
-  const colorType = resultData.apiResponse.season || resultData.season;
+  console.log(resultData.apiResponse);
+  const colorType = resultData.apiResponse.colorResult.season || resultData.season;
   // 신뢰도: confidence(기존) 또는 probabilities에서 해당 톤의 확률(신규)
   const confidence = resultData.confidence;
   const reason = resultData.reason || resultData.apiResponse.reason;
   const description = resultData.description || resultData.apiResponse.description;
-  const feature = resultData.feature || resultData.apiResponse.feature;
-  const recommend = resultData.recommend || resultData.apiResponse.recommend;
-  const avoid = resultData.avoid || resultData.apiResponse.avoid;
+  const feature = resultData.apiResponse.colorResult.feature || resultData.apiResponse.reason;
+  const recommend = resultData.apiResponse.colorResult.recommend || resultData.apiResponse.recommend;
+  const avoid = resultData.apiResponse.colorResult.avoid || resultData.apiResponse.avoid;
+
+  // 코디 제안 추출
+  const recommend_items = resultData.apiResponse.styleResult.recommend_items;
+  const style_keywords = resultData.apiResponse.styleResult.style_keywords;
   
   return (
     <div className="px-20 w-full overflow-y-auto snap-y snap-mandatory" style={{ height: '100vh' }}>
@@ -339,18 +344,9 @@ const ResultPage = () => {
               [코디 제안]
             </h2>
             <div className="text-white text-[18px] leading-relaxed ps-4">
-              <p className="mb-4">
-                이너로: 크림 베이지, 라이트 옐로우, 피치빛 톤의 티셔츠<br />
-                → 파란 가디건과 부드럽게 어우러지면서 봄 특유의 따뜻한 무드를 살릴 수 있어요!
-              </p>
-              <p className="mb-4">
-                액세서리: 골드 귀걸이, 밝은 코랄 립<br />
-                → 봄 웜톤에게 잘 어울리는 따뜻한 느낌의 포인트로 얼굴이 더 생기 있어 보여요.
-              </p>
-              <p>
-                신발: 아이보리 로퍼나 연한 카멜색 플랫 슈즈<br />
-                → 흰 바지와 자연스럽게 연결되면서 전체적으로 부드럽고 세련된 인상을 줄 수 있어요.
-              </p>
+              {recommend_items.map((item, index) => (
+                <p key={index}><span style={{color: item.rgb}}>{item.item}</span><br/>{" → "+item.description}</p>
+              ))}
             </div>
           </div>
         </div>
