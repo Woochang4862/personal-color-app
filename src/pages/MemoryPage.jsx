@@ -142,62 +142,33 @@ const MemoryPage = () => {
             {memoryImages.map((image, index) => (
               <div
                 key={image.id}
-                className="relative group cursor-pointer"
+                className="relative group cursor-pointer h-[500px] flex flex-col justify-center items-center"
                 onMouseEnter={() => setHoveredImage(index)}
                 onMouseLeave={() => setHoveredImage(null)}
                 onClick={() => handleImageSelect(image.season, image)}
               >
                 {/* 이미지 컨테이너 */}
-                <div className="relative w-80 h-[500px] rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-3xl">
+                <div className="relative w-80 h-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-3xl flex items-center justify-center">
                   <img
                     src={image.src}
                     alt={image.title}
                     className="w-full h-full object-cover"
                   />
-                  
-                    {/* 호버 오버레이 */}
-                    <div className={`absolute inset-0 transition-all duration-500 ${
-                      hoveredImage === index 
-                        ? 'bg-black/30 backdrop-blur-sm' 
-                        : 'bg-transparent'
-                    }`}>
-                      {/* 글래스모피즘 설명 박스 - 항상 블러 효과 유지 */}
-                      <div className={`absolute inset-x-4 bottom-1/2 translate-y-1/2 transition-opacity duration-300 transform backdrop-blur-sm ${
-                        hoveredImage === index 
-                          ? 'opacity-100' 
-                          : 'opacity-0'
-                      }`} style={{transform: 'translateZ(0) translateY(50%)'}}>
-                                                 <div className="bg-white/20 rounded-xl px-2 py-1 border border-white/30 shadow-xl will-change-transform" style={{transform: 'translateZ(0)'}}>
-                          <div className="flex items-center justify-center min-h-[30px]">
-                            <p className="text-sm text-white leading-relaxed whitespace-pre-line text-center" style={{textShadow: '0 0 10px rgba(0, 0, 0, 0.5)'}}>
-                              {image.description}
-                            </p>
-                          </div>
-                        </div>
+                  {/* 호버 오버레이 */}
+                  <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
+                    hoveredImage === index 
+                      ? 'bg-black/30 backdrop-blur-sm' 
+                      : 'bg-transparent'
+                  }`}>
+                    {/* 설명 박스 */}
+                    <div className={`transition-opacity duration-300 ${hoveredImage === index ? 'opacity-100' : 'opacity-0'}`}> 
+                      <div className="bg-white/20 rounded-xl px-4 py-2 border border-white/30 shadow-xl flex items-center justify-center min-h-[60px]">
+                        <p className="text-sm text-white leading-relaxed whitespace-pre-line text-center" style={{textShadow: '0 0 10px rgba(0, 0, 0, 0.5)'}}>
+                          {image.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  {/* 계절 라벨 (항상 표시) */}
-                  {/* <div className="absolute top-4 left-4">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                      <span className="text-white font-semibold text-sm">
-                        {image.season}
-                      </span>
-                    </div>
-                  </div> */}
-
-                  {/* 선택 표시 */}
-                  {/* <div className={`absolute top-4 right-4 transition-all duration-300 ${
-                    hoveredImage === index 
-                      ? 'scale-100 opacity-100' 
-                      : 'scale-75 opacity-0'
-                  }`}>
-                    <div className="bg-blue-500/80 backdrop-blur-sm rounded-full p-2 border border-white/30">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  </div> */}
                 </div>
               </div>
             ))}

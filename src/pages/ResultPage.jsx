@@ -327,7 +327,9 @@ const ResultPage = () => {
               [진단 결과]
             </h2>
             <p className="text-white text-[18px] leading-relaxed ps-4">
-              {description}
+              {feature.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
             </p>
           </div>
           
