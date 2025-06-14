@@ -226,7 +226,12 @@ const ResultPage = () => {
         // }
         
         // 여기서 다음 페이지로 이동하거나 추가 처리 가능
-        window.scrollTo(0, 0);
+        // 페이지 최상단으로 스크롤
+        document.querySelector('main > div').scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth'
+        });
         
       } catch (error) {
         console.error('❌ Error in handleConfirm:', error);
