@@ -1,7 +1,7 @@
 // sendOSCToTouchDesigner.js
 // 브라우저 환경에서 TouchDesigner로 OSC 메시지를 전송하는 함수
 
-export function sendOSCToTouchDesigner(result, selectedColorIndex = null) {
+export function sendOSCToTouchDesigner(result, selectedColorIndex = null, selectedPaint = null) {
   const seasonToNumber = {
     '봄': 1,
     '봄 웜톤': 1,
@@ -13,30 +13,21 @@ export function sendOSCToTouchDesigner(result, selectedColorIndex = null) {
     '겨울 쿨톤': 4
   };
 
-  const season = result.season || result.apiResponse?.season || '봄';
-  const feature = result.feature || result.apiResponse?.feature || [];
-  const recommend = result.recommend || result.apiResponse?.recommend || [];
+  const season = result.apiResponse.colorResult.season || result.season || '봄';
 
   const numericValue = seasonToNumber[season] || seasonToNumber[season.split(' ')[0]] || 1;
 
   console.log(`📡 Preparing OSC message for TouchDesigner`);
   console.log(`Season: ${season} → Numeric: ${numericValue}`);
   console.log(`Selected Color Index: ${selectedColorIndex}`);
-  console.log(`Features:`, feature);
-  console.log(`Recommended Colors:`, recommend);
+  console.log(`Selected Paint:`, selectedPaint);
 
   // TouchDesigner로 HTTP POST 요청을 통해 OSC 데이터 전송
   const oscData = {
-    address: '/personalColor',
-    season: numericValue,
-    seasonName: season,
-    selectedColorIndex: selectedColorIndex,
-    features: feature,
-    recommendedColors: recommend.map(color => ({
-      name: color.name,
-      rgb: color.rgb,
-      hex: color.hex || color.rgb
-    }))
+      season: numericValue,
+      seasonName: season,
+      selectedColorIndex: selectedColorIndex,
+      selectedPaint: selectedPaint,
   };
 
   return sendOSCViaHTTP(oscData);

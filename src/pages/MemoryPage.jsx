@@ -56,20 +56,16 @@ const MemoryPage = () => {
     }
   ];
 
-  const handleImageSelect = (season, imageData) => {
-    setSelectedImage({ season, ...imageData });
+  const handleImageSelect = (index) => {
+    setSelectedImage(index);
   };
 
   const handleOutfitSubmit = (e) => {
     e.preventDefault();
     if (outfitDescription.trim()) {
       // 선택된 계절과 옷차림 설명을 저장하고 로딩 페이지로 이동
-      sessionStorage.setItem('selectedSeason', selectedImage.season);
-      sessionStorage.setItem('selectedImageData', JSON.stringify(selectedImage));
+      sessionStorage.setItem('selectedImage', selectedImage);
       sessionStorage.setItem('outfitDescription', outfitDescription.trim());
-      // 더미 이미지를 설정 (실제로는 사용자가 업로드한 이미지가 있어야 함)
-      sessionStorage.setItem('capturedImage', selectedImage.src);
-      sessionStorage.setItem('imageSource', 'memory');
       navigate('/capture');
     }
   };
@@ -145,7 +141,7 @@ const MemoryPage = () => {
                 className="relative group cursor-pointer h-[500px] flex flex-col justify-center items-center"
                 onMouseEnter={() => setHoveredImage(index)}
                 onMouseLeave={() => setHoveredImage(null)}
-                onClick={() => handleImageSelect(image.season, image)}
+                onClick={() => handleImageSelect(index)}
               >
                 {/* 이미지 컨테이너 */}
                 <div className="relative w-80 h-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-3xl flex items-center justify-center">

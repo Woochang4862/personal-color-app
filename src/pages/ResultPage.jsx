@@ -211,10 +211,10 @@ const ResultPage = () => {
       try {
         // 선택된 컬러 정보를 저장
         sessionStorage.setItem('selectedColorIndex', selectedColor.toString());
-        
+        const selectedPaint = sessionStorage.getItem('selectedImage');
         // TouchDesigner로 OSC 데이터 전송
         console.log('🚀 Sending OSC data to TouchDesigner...');
-        const oscResult = await sendOSCToTouchDesigner(resultData, selectedColor);
+        const oscResult = await sendOSCToTouchDesigner(resultData, selectedColor, selectedPaint);
         
         // if (oscResult.success) {
         //   alert(`컬러가 선택되었습니다!\n${oscResult.message}`);
@@ -299,6 +299,13 @@ const ResultPage = () => {
   // 코디 제안 추출
   const recommend_items = resultData.apiResponse.styleResult.recommend_items;
   const style_keywords = resultData.apiResponse.styleResult.style_keywords;
+
+  const colorFeelings = {
+    '봄 웜톤': '당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.',
+    '여름 쿨톤': '당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.1',
+    '가을 웜톤': '당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.2',
+    '겨울 쿨톤': '당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.3',
+  }
   
   return (
     <div className="px-20 w-full overflow-y-auto snap-y snap-mandatory" style={{ height: '100vh' }}>
@@ -311,7 +318,7 @@ const ResultPage = () => {
           </h1>
           
           {/* 이미지 영역 - 파란색 테두리 */}
-          <div className="w-96 h-96 border-2 border-blue-500 rounded-[44px] overflow-hidden">
+          <div className="w-96 h-96 rounded-[44px] overflow-hidden">
             <img
               src={resultImage}
               alt="분석된 이미지"
@@ -320,7 +327,7 @@ const ResultPage = () => {
           </div>
           
           <p className="text-white text-lg text-center mt-16 leading-relaxed">
-            당신을 보면 햇살 아래 피어난 봄꽃🌼 이 떠올라요.
+            {colorFeelings[colorType]}
           </p>
         </div>
         
@@ -345,7 +352,7 @@ const ResultPage = () => {
             </h2>
             <div className="text-white text-[18px] leading-relaxed ps-4">
               {recommend_items.map((item, index) => (
-                <p key={index}><span style={{color: item.rgb}}>{item.item}</span><br/>{" → "+item.description}</p>
+                <p key={index}><span className="font-extrabold" style={{color: item.rgb}}>{item.item}</span><br/>{" → "+item.description}</p>
               ))}
             </div>
           </div>
