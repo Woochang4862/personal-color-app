@@ -54,6 +54,7 @@ async function sendOSCViaHTTP(oscData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Control-Allow-Origin': '*',
       },
       body: JSON.stringify(oscData)
     });
