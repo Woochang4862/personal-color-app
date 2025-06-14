@@ -48,8 +48,6 @@ async function sendOSCViaHTTP(oscData) {
     // TouchDesigner의 HTTP 서버 엔드포인트 (일반적으로 9980 포트 사용)
     const touchDesignerURL = 'http://localhost:9980/osc';
 
-    console.log(oscData);
-    console.log(JSON.stringify(oscData));
     const response = await fetch(touchDesignerURL, {
       method: 'POST',
       headers: {
@@ -59,7 +57,7 @@ async function sendOSCViaHTTP(oscData) {
       mode: 'no-cors',
       body: JSON.stringify(oscData)
     });
-
+    console.log(response);
     if (response.ok) {
       console.log('✅ OSC data sent to TouchDesigner successfully');
       return { success: true, message: 'OSC 데이터가 TouchDesigner로 성공적으로 전송되었습니다.' };
