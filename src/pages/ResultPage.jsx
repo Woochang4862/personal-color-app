@@ -216,13 +216,13 @@ const ResultPage = () => {
         console.log('🚀 Sending OSC data to TouchDesigner...');
         const oscResult = await sendOSCToTouchDesigner(resultData, selectedColor);
         
-        if (oscResult.success) {
-          alert(`컬러가 선택되었습니다!\n${oscResult.message}`);
-          console.log('✅ OSC data sent successfully');
-        } else {
-          alert(`컬러가 선택되었지만 TouchDesigner 전송에 실패했습니다.\n${oscResult.error || '알 수 없는 오류'}`);
-          console.error('❌ OSC transmission failed:', oscResult.error);
-        }
+        // if (oscResult.success) {
+        //   alert(`컬러가 선택되었습니다!\n${oscResult.message}`);
+        //   console.log('✅ OSC data sent successfully');
+        // } else {
+        //   alert(`컬러가 선택되었지만 TouchDesigner 전송에 실패했습니다.\n${oscResult.error || '알 수 없는 오류'}`);
+        //   console.error('❌ OSC transmission failed:', oscResult.error);
+        // }
         
         // 여기서 다음 페이지로 이동하거나 추가 처리 가능
         // navigate('/next-page');
