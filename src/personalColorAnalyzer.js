@@ -6,7 +6,8 @@ import path from 'path';
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Reads API key from .env
 });
-
+//교체되는 변수 
+let styleTxt = "asd"
 // Define the prompt directly in the code
 const SEASON_GUIDE = `
 너는 퍼스널컬러 분석에 특화된 시각적 스타일 진단 모델이야.
@@ -49,9 +50,9 @@ feature는 **해당 퍼스널 컬러를 가진 사람들에게 자주 보이는 
   "reason": "피부, 머리카락, 눈 등의 시각적 분석에 기반한 진단 이유",
   "description": "이 퍼스널컬러 톤은 부드럽고 투명한 이미지와 잘 어울리며, 전체적으로 밝고 생기 있는 느낌을 줍니다. 가벼운 색조와 높은 명도 중심의 색이 조화를 이루는 톤으로, 밝은 분위기를 살려주는 스타일에 잘 어울립니다.",
   "feature": [
-    "피부톤이 밝고 혈색이 좋아 보이며 노란빛이 은은하게 감돕니다.",
-    "머리카락은 자연스러운 갈색 계열로 밝은 톤일수록 얼굴이 살아납니다.",
-    "눈동자는 맑고 부드러운 갈색이며, 전체적인 명도 대비가 강하지 않습니다."
+    "피부톤이 밝고 혈색이 좋아 보이며 노란빛이 은은하게 감돌아요.",
+    "머리카락은 자연스러운 갈색 계열로 밝은 톤일수록 얼굴이 살아나요.",
+    "눈동자는 맑고 부드러운 갈색이며, 전체적인 명도 대비가 강하네요"
   ],
   "recommend": [
     {"name": "밝은 살구색", "rgb": "#FFD1B2"},
@@ -65,7 +66,27 @@ feature는 **해당 퍼스널 컬러를 가진 사람들에게 자주 보이는 
 }
 `;
 
-async function classifyPersonalColor(imgPath) {
+async function classifyPersonalColor(imgPath, styleTxt) {
+
+const COORDI_PROMPT = `
+너는 퍼스널컬러에 맞춘 스타일링을 추천해주는 패션 스타일리스트야.
+사용자의 [현재 착장]과 [퍼스널 컬러]를 고려해서 스타일 키워드 출력 형식에 맞춰 설명.
+설명할 때 말투는 친절하게.
+
+!!주의사항!! 블랙이나 화이트 무채색 아이템은 추천 금지
+
+[출력 형식 - JSON, 한국어]
+RGB는 16진수 HEX 코드 (#RRGGBB)로 표기.
+
+{
+  "style_keywords": ["#청량한", "#내추럴", "#미니멀"],
+  "recommend_items": [
+    {"item": "연청 데님 자켓", "description": "맑은 피부톤을 살려주는 밝은 데님은 봄 웜톤에게 잘 어울려요.", "rgb": "#ADD8E6"},
+    {"item": "라이트 옐로우 린넨 셔츠", "description": "가볍고 밝은 컬러감으로 생기 있는 인상을 더할 수 있어요.", "rgb": "#FFFFE0"}
+  ],
+}
+`;
+
   try {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not set in .env file or environment variables.");
@@ -73,7 +94,7 @@ async function classifyPersonalColor(imgPath) {
     const imageAsBase64 = await fs.readFile(imgPath, 'base64');
     const fileExtension = path.extname(imgPath).substring(1); // e.g., 'jpg', 'png'
 
-    const response = await client.chat.completions.create({
+    const colorResponse   = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0,
       messages: [
@@ -94,11 +115,32 @@ async function classifyPersonalColor(imgPath) {
       response_format: { type: "json_object" } // To ensure the output is JSON
     });
 
-    if (response.choices && response.choices.length > 0 && response.choices[0].message && response.choices[0].message.content) {
-      return JSON.parse(response.choices[0].message.content);
+    let personalColorResult;
+    if (colorResponse.choices && colorResponse.choices.length > 0 && colorResponse.choices[0].message && colorResponse.choices[0].message.content) {
+      personalColorResult = JSON.parse(colorResponse.choices[0].message.content);
     } else {
       throw new Error("Invalid response structure from OpenAI API");
     }
+
+    const coordiResponse = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.5,
+      messages: [
+        { role: "system", content: COORDI_PROMPT },
+        {
+          role: "user",
+          content: `[퍼스널컬러] :  ${personalColorResult.season}, [사용자의 복장 정보]  /${styleTxt}`
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    const coordiResult = JSON.parse(coordiResponse.choices[0].message.content);
+
+    return {
+      personalColor: personalColorResult,
+      coordi: coordiResult
+    };
   } catch (error) {
     console.error("Error in classifyPersonalColor:", error.message || error);
     throw error;
@@ -108,6 +150,8 @@ async function classifyPersonalColor(imgPath) {
 async function main() {
   try {
     let imagePath;
+    let styleTxt;
+
     if (process.argv.length > 2) {
       imagePath = process.argv[2];
     } else {
@@ -116,12 +160,16 @@ async function main() {
       process.exit(1);
     }
 
+    styleTxt = process.argv[3] || "흰 셔츠, 베이지색 바지, 귀여운 키링";
+
     if (!await fs.access(imagePath).then(() => true).catch(() => false)) {
       console.error(`Error: Image file not found at ${imagePath}`);
       process.exit(1);
     }
-    const result = await classifyPersonalColor(imagePath);
+    const result = await classifyPersonalColor(imagePath, styleTxt);
     console.log(JSON.stringify(result, null, 2));
+
+
   } catch (error) {
     // Error logging is already handled in classifyPersonalColor, 
     // but we catch here to prevent unhandled promise rejection for main itself.
