@@ -6,21 +6,6 @@ import noise from "../assets/noise.svg";
 const LandingPage = () => {
   const navigate = useNavigate();
 
-  // 스페이스바 키 이벤트 처리
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.code === "Space") {
-        e.preventDefault(); // 기본 스크롤 동작 방지
-        navigate("/capture");
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [navigate]);
-
   // 계절 버튼 클릭 핸들러
   const handleSeasonSelect = (season) => {
     sessionStorage.setItem("selectedSeason", season);
@@ -28,33 +13,36 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="w-full scrollbar-hide"
-    onClick={() => {
-      // scroll to next section
-      const nextSection = document.getElementById("section2");
-      nextSection.scrollIntoView({ behavior: "smooth" });
-    }}>
+    <div
+      className="w-full scrollbar-hide"
+      onClick={() => {
+        // scroll to next section
+        const nextSection = document.getElementById("section2");
+        nextSection.scrollIntoView({ behavior: "smooth" });
+      }}
+    >
       <section className="h-screen w-full flex items-center justify-center snap-start">
         <div className="text-center max-w-4xl mx-auto px-6 h-screen w-full flex flex-col justify-between items-center py-8">
+          <div className="flex-1 flex items-center justify-center w-full flex-col"></div>
           <div className="flex-1 flex items-center justify-center w-full flex-col">
             <img
               src={mainLogo}
               alt="mainLogo"
               className="w-2/3 max-w-lg mx-auto"
             />
-            <div className="mt-6 flex justify-center">
-            <button
-              className={``}
-            >
-              <span className="text-white text-2xl font-medium">- Click to Start -</span>
-            </button>
           </div>
-          </div>
+          <div className="flex-1 flex items-center justify-between w-full flex-col">
+            <div className="h-full flex flex-col justify-center items-center">
+              <span className="text-[#d3d3d3] text-2xl font-medium animate-pulse">
+                - Press (↓) to Start -
+              </span>
+            </div>
 
-          
-          <p className="w-full text-sm text-gray-400 text-center">
-            Design By USW DataScience Department
-          </p>
+            
+          </div>
+          <p className="w-full text-xs text-gray-400 text-center">
+              Designed By USW DataScience Department
+            </p>
         </div>
       </section>
 
@@ -74,7 +62,7 @@ const LandingPage = () => {
           </div>
           {/* 스크롤 유도 애니메이션 */}
           <div className="mt-8 flex flex-col items-center">
-            <span className="text-gray-300 text-sm mb-2">아래로 스크롤</span>
+            <span className="text-gray-300 text-sm mb-2">press (↓)</span>
             <svg
               className="w-8 h-8 animate-bounce text-gray-300"
               fill="none"
@@ -127,7 +115,7 @@ const LandingPage = () => {
           </div>
           {/* 스크롤 유도 애니메이션 */}
           <div className="mt-8 flex flex-col items-center">
-            <span className="text-gray-300 text-sm mb-2">아래로 스크롤</span>
+            <span className="text-gray-300 text-sm mb-2">press (↓)</span>
             <svg
               className="w-8 h-8 animate-bounce text-gray-300"
               fill="none"
@@ -162,7 +150,7 @@ const LandingPage = () => {
           </div>
           {/* 스크롤 유도 애니메이션 */}
           <div className="mt-8 flex flex-col items-center">
-            <span className="text-gray-300 text-sm mb-2">아래로 스크롤</span>
+            <span className="text-gray-300 text-sm mb-2">press (↓)</span>
             <svg
               className="w-8 h-8 animate-bounce text-gray-300"
               fill="none"
