@@ -10,7 +10,8 @@ export function sendOSCToTouchDesigner(result, selectedColor = null, selectedPai
     '봄 웜톤': 1,
     '여름 쿨톤': 2,
     '가을 웜톤': 3,
-    '겨울 쿨톤': 4
+    '겨울 쿨톤': 4,
+    '초기화면': 5
   };
 
   const season = result.apiResponse.colorResult.season || result.season || '봄';

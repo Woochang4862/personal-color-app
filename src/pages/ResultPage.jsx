@@ -247,7 +247,7 @@ const ResultPage = () => {
       {
         apiResponse: {
           colorResult: {
-            season: 5,
+            season: '초기화면',
           },
         },
       },
