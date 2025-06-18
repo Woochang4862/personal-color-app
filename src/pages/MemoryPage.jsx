@@ -83,7 +83,7 @@ const MemoryPage = () => {
   };
 
   // 이미지 선택 후 텍스트 입력 화면
-  if (selectedImage) {
+  if (selectedImage !== null) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-4xl mx-auto w-full min-h-screen flex items-center justify-center">
         <div className="text-center w-full">
