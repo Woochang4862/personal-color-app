@@ -27,7 +27,7 @@ const MemoryPage = () => {
       src: memoryImage1,
       season: '봄',
       title: '따스한 햇살 아래 피크닉',
-      description: '하늘은 수채화 물감을 끼얹은 것 같았어요',
+      description: '오밀조밀하고 귀여운 일러스트',
       emotion: '설렘과 희망이 가득한'
     },
     {
@@ -35,7 +35,7 @@ const MemoryPage = () => {
       src: memoryImage2,
       season: '여름',
       title: '장미가 만발한 테라스',
-      description: '뜨거운 태양과 푸른 하늘\n열정적이고 활기찬 계절',
+      description: '강렬한 붓 스트로크로 표현되는 \n 고전적인 유화',
       emotion: '에너지 넘치는'
     },
     {
@@ -43,7 +43,7 @@ const MemoryPage = () => {
       src: memoryImage3,
       season: '가을',
       title: '단풍이 물든 정원',
-      description: '낙엽이 떨어지고 단풍이 드는\n차분하고 성숙한 계절',
+      description: '사람의 시야를 그대로 담은 사진',
       emotion: '깊이 있고 고요한'
     },
     {
@@ -51,7 +51,7 @@ const MemoryPage = () => {
       src: memoryImage4,
       season: '겨울',
       title: '고요한 겨울 나비',
-      description: '눈이 내리고 모든 것이 고요한\n순수하고 깨끗한 계절',
+      description: '변형되고 뒤틀린 우연의 미학',
       emotion: '평온하고 신비로운'
     }
   ];
@@ -130,7 +130,7 @@ const MemoryPage = () => {
           <div className="text-center mb-16">
             <p className="text-white text-xl text-center leading-relaxed">
               괜찮아요. 제가 떠올릴 수 있도록 도와드릴게요.<br/>
-              그 날은 어떤 풍경이었나요?
+              당신의 눈에 들어오는 세계는 무엇인가요?
             </p>
           </div>
 
