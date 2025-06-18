@@ -12,10 +12,24 @@ const LandingPage = () => {
     navigate("/loading");
   };
 
+  const handleHome = async () => {
+    const oscResult = await sendOSCToTouchDesigner(
+      {
+        apiResponse: {
+          colorResult: {
+            season: '초기화면',
+          },
+        },
+      },
+      `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+      Math.floor(Math.random() * 4)
+    );
+    console.log(oscResult);
+    
+  }
+
   return (
-    <div
-      className="w-full scrollbar-hide"
-    >
+    <div className="w-full scrollbar-hide">
       <section className="h-screen w-full flex items-center justify-center snap-start">
         <div className="text-center max-w-4xl mx-auto px-6 h-screen w-full flex flex-col justify-between items-center py-8">
           <div className="flex-1 flex items-center justify-center w-full flex-col"></div>
@@ -32,12 +46,10 @@ const LandingPage = () => {
                 - Press (↓) to Start -
               </span>
             </div>
-
-            
           </div>
           <p className="w-full text-xs text-gray-400 text-center">
-              Designed By USW DataScience Department
-            </p>
+            Designed By USW DataScience Department
+          </p>
         </div>
       </section>
 
@@ -213,6 +225,14 @@ const LandingPage = () => {
           </Link>
         </div>
       </section>
+      {/* 홈으로 돌아가기 버튼 (하단 우측) */}
+      <Link
+        to="/"
+        onClick={handleHome}
+        className="absolute bottom-8 right-8 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors text-sm"
+      >
+        Reset
+      </Link>
     </div>
   );
 };
