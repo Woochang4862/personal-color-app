@@ -241,6 +241,22 @@ const ResultPage = () => {
       alert('컬러를 선택해주세요.');
     }
   };
+
+  const handleHome = async () => {
+    const oscResult = await sendOSCToTouchDesigner(
+      {
+        apiResponse: {
+          colorResult: {
+            season: 5,
+          },
+        },
+      },
+      `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+      Math.floor(Math.random() * 4)
+    );
+    console.log(oscResult);
+    navigate('/');
+  }
   
   // 로딩 중 표시
   if (isLoading) {
@@ -413,6 +429,7 @@ const ResultPage = () => {
         {/* 홈으로 돌아가기 버튼 (하단 우측) */}
         <Link
           to="/"
+          onClick={handleHome}
           className="absolute bottom-8 right-8 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors text-sm"
         >
           홈으로 돌아가기 (Space)
