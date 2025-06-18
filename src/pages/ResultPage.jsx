@@ -227,16 +227,14 @@ const ResultPage = () => {
         
         // 여기서 다음 페이지로 이동하거나 추가 처리 가능
         // 페이지 최상단으로 스크롤
-        document.querySelector('main > div').scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'smooth'
-        });
+        
         
       } catch (error) {
         console.error('❌ Error in handleConfirm:', error);
         alert('컬러가 선택되었지만 처리 중 오류가 발생했습니다.');
       }
+      // scroll to bottom
+      document.querySelector('main section:nth-of-type(3)').scrollIntoView({ behavior: 'smooth' });
     } else {
       alert('컬러를 선택해주세요.');
     }
@@ -434,6 +432,14 @@ const ResultPage = () => {
         >
           홈으로 돌아가기 (Space)
         </Link>
+      </section>
+
+      <section className="h-screen w-full flex flex-col justify-center items-center snap-start">
+        {/* 화면을 봐 주세요 문구 표시*/}
+        <p className="text-white text-5xl mb-8 text-center">
+          고개를 들어 앞을 봐 주세요
+
+        </p>
       </section>
     </div>
   );
