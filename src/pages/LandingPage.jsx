@@ -1,11 +1,40 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import mainLogo from "../assets/main_logo.png";
 import noise from "../assets/noise.svg";
-import { sendOSCToTouchDesigner } from "../sendOSCToTouchDesigner";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const isScrolling = useRef(false);
+  const scrollTimeout = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      isScrolling.current = true;
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      scrollTimeout.current = setTimeout(() => {
+        isScrolling.current = false;
+      }, 200); // 200ms 동안 스크롤이 없으면 스크롤 종료로 간주
+    };
+
+    const handleKeyDown = (e) => {
+      // 스크롤 중일 때 방향키(↑, ↓) 입력 막기
+      console.log("test");
+      if (isScrolling.current && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    };
+  }, []);
 
   // 계절 버튼 클릭 핸들러
   const handleSeasonSelect = (season) => {
@@ -13,24 +42,10 @@ const LandingPage = () => {
     navigate("/loading");
   };
 
-  const handleHome = async () => {
-    const oscResult = await sendOSCToTouchDesigner(
-      {
-        apiResponse: {
-          colorResult: {
-            season: '초기화면',
-          },
-        },
-      },
-      `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
-      Math.floor(Math.random() * 4)
-    );
-    console.log(oscResult);
-    
-  }
-
   return (
-    <div className="w-full scrollbar-hide">
+    <div
+      className="w-full scrollbar-hide"
+    >
       <section className="h-screen w-full flex items-center justify-center snap-start">
         <div className="text-center max-w-4xl mx-auto px-6 h-screen w-full flex flex-col justify-between items-center py-8">
           <div className="flex-1 flex items-center justify-center w-full flex-col"></div>
@@ -47,10 +62,12 @@ const LandingPage = () => {
                 - Press (↓) to Start -
               </span>
             </div>
+
+            
           </div>
           <p className="w-full text-xs text-gray-400 text-center">
-            Designed By USW DataScience Department
-          </p>
+              Designed By USW DataScience Department
+            </p>
         </div>
       </section>
 
@@ -226,14 +243,6 @@ const LandingPage = () => {
           </Link>
         </div>
       </section>
-      {/* 홈으로 돌아가기 버튼 (하단 우측) */}
-      <Link
-        to="/"
-        onClick={handleHome}
-        className="absolute bottom-8 right-8 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors text-sm"
-      >
-        Reset
-      </Link>
     </div>
   );
 };
