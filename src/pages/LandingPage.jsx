@@ -2,11 +2,28 @@ import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import mainLogo from "../assets/main_logo.png";
 import noise from "../assets/noise.svg";
+import { sendOSCToTouchDesigner } from "../sendOSCToTouchDesigner";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const isScrolling = useRef(false);
   const scrollTimeout = useRef(null);
+
+  const handleHome = async () => {
+    const oscResult = await sendOSCToTouchDesigner(
+      {
+        apiResponse: {
+          colorResult: {
+            season: '초기화면',
+          },
+        },
+      },
+      `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+      Math.floor(Math.random() * 4)
+    );
+    console.log(oscResult);
+    
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -243,6 +260,14 @@ const LandingPage = () => {
           </Link>
         </div>
       </section>
+      {/* 리셋 버튼 */}
+      <Link
+        to="/"
+        onClick={handleHome}
+        className="absolute bottom-8 right-8 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-colors text-sm"
+      >
+        Reset
+      </Link>
     </div>
   );
 };
